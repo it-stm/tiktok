@@ -395,11 +395,9 @@
         async function loadData() {
             const errorBox = document.getElementById("errorMessage");
             const tableWrap = document.getElementById("tableWrap");
-            const reloadButton = document.getElementById("reloadButton");
 
             errorBox.classList.add("hidden");
             tableWrap.classList.add("hidden");
-            reloadButton.disabled = true;
             document.getElementById("summary").textContent = "กำลังโหลด COMMENT_CHECK.csv...";
 
             try {
@@ -434,12 +432,9 @@
                 errorBox.textContent = String(error.message || error);
                 errorBox.classList.remove("hidden");
                 document.getElementById("summary").textContent = "ไม่สามารถแสดงข้อมูลได้";
-            } finally {
-                reloadButton.disabled = false;
             }
         }
 
-        document.getElementById("reloadButton").addEventListener("click", loadData);
         loadData();
     </script>
 </body>
