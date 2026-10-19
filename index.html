@@ -462,30 +462,23 @@
                 drawTable(parseCsv(csvText));
                 tableWrap.classList.remove("hidden");
 
-                // GitHub Pages อาจไม่ส่ง Last-Modified หรือส่งเวลาของไฟล์ใน CDN
-                // จึงไม่ใช้เวลานี้เป็นหลักฐานยืนยันเวลาที่ CSV ถูกสร้างจริง
-                const modified = response.headers.get("last-modified");
-                let title = "ตรวจสอบคอมเมนต์ TikTok";
+             
+               // วันที่ปัจจุบันตามเวลาไทย + เวลาที่กำหนดเอง
+            const today = new Intl.DateTimeFormat("en-GB", {
+                timeZone: "Asia/Bangkok",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }).format(new Date());
 
-                if (modified) {
-                    const date = new Date(modified);
-                    if (!Number.isNaN(date.getTime())) {
-                        const formatted = new Intl.DateTimeFormat("en-GB", {
-                            timeZone: "Asia/Bangkok",
-                            year: "numeric", month: "2-digit", day: "2-digit",
-                            hour: "2-digit", minute: "2-digit", hour12: false
-                        }).format(date);
-                        title += " " + formatted.replace(",", "");
-                    }
-                }
-
-                document.getElementById("pageTitle").textContent = title;
-            } catch (error) {
-                errorBox.textContent = String(error.message || error);
-                errorBox.classList.remove("hidden");
-                document.getElementById("summary").textContent = "ไม่สามารถแสดงข้อมูลได้";
-            }
-        }
+            document.getElementById("pageTitle").textContent =
+                `ตรวจสอบคอมเมนต์ TikTok ${today} 8:20`;
+              } catch (error) {
+                   errorBox.textContent = String(error.message || error);
+                  errorBox.classList.remove("hidden");
+                 document.getElementById("summary").textContent = "ไม่สามารถแสดงข้อมูลได้";
+             }
+         }
 
         loadData();
     </script>
