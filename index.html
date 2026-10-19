@@ -151,6 +151,12 @@
             background: #eaf2ff;
         }
 
+        /* สีพาสเทลทั้งแถวตามชื่อคลิป รวมคอลัมน์ที่ Freeze และตอน Hover */
+        tbody tr.clip-colored td,
+        tbody tr.clip-colored:hover td {
+            background: var(--clip-row-color);
+        }
+
         tbody td:nth-child(n+3) {
             text-align: center;
         }
@@ -206,6 +212,16 @@
 
         const defaultUserWidth = 130;
         const csvFileName = "COMMENT_CHECK.csv";
+
+        // สีแถวตามคำที่พบใน clip_name (ไม่สนใจตัวพิมพ์เล็ก-ใหญ่)
+        // หากชื่อคลิปมีหลายคำที่ตรงกัน จะใช้สีของคำที่อยู่ก่อนในรายการ
+        const clipRowColors = [
+            { keyword: "nut",     color: "#E0F2FE" }, // ฟ้าอ่อน
+            { keyword: "tangkwa", color: "#FCE7F3" }, // ชมพูอ่อน
+            { keyword: "ae",      color: "#FFEDD5" }, // ส้มอ่อน
+            { keyword: "wine",    color: "#F3E8FF" }, // ม่วงอ่อน
+            { keyword: "phol",    color: "#F1F5F9" }  // เทาอ่อน
+        ];
 
         // ==========================================================
         // 5. อ่าน CSV และรองรับ UTF-8 / UTF-16 / Windows-874
@@ -341,6 +357,12 @@
             const tbody = document.createElement("tbody");
             for (let r = 2; r < rows.length; r++) {
                 const tr = document.createElement("tr");
+                const clipName = String(rows[r][0]).toLowerCase();
+                const matchedColor = clipRowColors.find(item => clipName.includes(item.keyword));
+                if (matchedColor) {
+                    tr.classList.add("clip-colored");
+                    tr.style.setProperty("--clip-row-color", matchedColor.color);
+                }
 
                 for (let c = 0; c < columns; c++) {
                     const td = document.createElement("td");
