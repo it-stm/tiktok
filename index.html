@@ -96,14 +96,18 @@
             text-overflow: ellipsis;
         }
 
-        thead th {
-            background: #e2e8f0;
-            font-weight: 700;
-            text-align: center;
-            height: 45px;
-            position: sticky;
-            z-index: 3;
-        }
+            thead th {
+                background: #e2e8f0;
+                font-weight: 700;
+                text-align: center;
+                height: 60px;
+                position: sticky;
+                z-index: 3;
+
+                white-space: pre-line;
+                line-height: 1.5;
+                vertical-align: middle;
+            }
 
         thead tr:first-child th {
             top: 0;
@@ -369,7 +373,7 @@
                 for (let c = 0; c < columns; c++) {
                     const th = document.createElement("th");
                     const text = r === 0 && c >= 2
-                        ? `(${commentedCounts[c]}/${clipCount}) ${rows[r][c]}`
+                        ? `(${commentedCounts[c]}/${clipCount})\n${rows[r][c]}`
                         : rows[r][c];
 
                     th.textContent = text;
