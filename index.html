@@ -309,6 +309,16 @@
             const columns = Math.max(...rows.map(row => row.length));
             rows = rows.map(row => Array.from({ length: columns }, (_, i) => row[i] ?? ""));
 
+            // เรียงเฉพาะแถวข้อมูลตาม clip_name (A-Z, ไม่สนตัวพิมพ์เล็กใหญ่)
+            // คงหัวตาราง CSV สองแถวแรกไว้ และเรียงแบบตัวเลขตามธรรมชาติ เช่น clip2 ก่อน clip10
+            const sortedClips = rows.slice(2).sort((a, b) =>
+                String(a[0]).localeCompare(String(b[0]), undefined, {
+                    sensitivity: "base",
+                    numeric: true
+                })
+            );
+            rows = [...rows.slice(0, 2), ...sortedClips];
+
             const clipCount = Math.max(0, rows.length - 2);
             const totalUsers = Math.max(0, columns - 2);
             const commentedCounts = Array(columns).fill(0);
