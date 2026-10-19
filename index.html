@@ -217,6 +217,7 @@
             1: 125, // คอลัมน์ B: URL (Freeze)
             2: 85, // คอลัมน์ C: ผู้ใช้คนที่ 1
             3: 85  // คอลัมน์ D: ผู้ใช้คนที่ 2
+            "16-24": 75,  // คอลัมน์ 16 ถึง 24 กว้าง 75px
             // 4: 180, // เพิ่มความกว้างรายคอลัมน์ได้
         };
 
@@ -342,9 +343,28 @@
             return ["✓", "✔", "yes", "true", "1"].includes(value.trim().toLowerCase());
         }
 
-        function getColumnWidth(column) {
-            return Math.max(70, Number(columnWidths[column] ?? defaultUserWidth));
+function getColumnWidth(column) {
+    // ค่ารายคอลัมน์มีความสำคัญก่อนค่าช่วง
+    if (columnWidths[column] !== undefined) {
+        return Math.max(70, Number(columnWidths[column]));
+    }
+
+    // ตรวจสอบการกำหนดเป็นช่วง
+    for (const [range, width] of Object.entries(columnWidths)) {
+        const match = range.match(/^(\d+)-(\d+)$/);
+
+        if (match) {
+            const start = Number(match[1]);
+            const end = Number(match[2]);
+
+            if (column >= start && column <= end) {
+                return Math.max(70, Number(width));
+            }
         }
+    }
+
+    return Math.max(70, defaultUserWidth);
+}
 
         // ==========================================================
         // 6. แสดงหัวตารางเฉพาะแถวแรกและข้อมูล พร้อมยอด (commented/all)
