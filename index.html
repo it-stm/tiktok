@@ -278,8 +278,70 @@
                     "@byaey0", "@xxxlek", "@ajchareeya_kung", "@xxxblue"
                 ],
                 prefixes: ["wine"]
+            },
+            {
+                usernames: [
+                    "@xxx", "@xxx", "@xxx",
+                    "@xxx", "@xxx", "@xxx",
+                    "@xxx", "@xxx", "@xxx", "@xxx"
+                ],
+                prefixes: ["salexxx"]
+            },
+            {
+                usernames: [
+                    "@yyy", "@yyy", "@yyy",
+                    "@yyy", "@yyy", "@yyy",
+                    "@yyy", "@yyy", "@yyy", "@yyy"
+                ],
+                prefixes: ["saleyyy"]
+            }
+           
+        ];
+
+
+        
+        // ==========================================================
+        // กฎการนับยอดหลังชื่อคลิป (แยกจากหัวตาราง)
+        // คลิปที่ไม่ได้กำหนดกลุ่ม จะนับ User ทุกคน
+        // ==========================================================
+        const clipCountGroups = [
+            {
+                prefixes: ["tangkwa"],
+                usernames: [
+                    "@tangkwaisuzu", "@2carbytangkwa", "@happi.ness1820",
+                    "@nichthiranan1215_k", "@sirinn_e", "@parchkrawnuch",
+                    "@ozeriskung", "@ninja9stm", "@surasakmuangto",
+                    "@rawsixonenines", "@user6156904622615"
+                ]
+            },
+            {
+                prefixes: ["wine"],
+                usernames: [
+                    "@winey744", "@aunnatnicha176", "@bzonyaa",
+                    "@maynisa44", "@kaewp99", "@automoshi",
+                    "@byaey0", "@xxxlek", "@ajchareeya_kung", "@xxxblue"
+                ]
+            },
+            {
+                prefixes: ["salexxx"],
+                usernames: ["@xxx"]
+            },
+            {
+                prefixes: ["saleyyy"],
+                usernames: ["@yyy"]
             }
         ];
+
+
+
+
+
+
+
+
+
+
+        
 
         function normalizedUsername(value) {
             return String(value ?? "").trim().toLowerCase().replace(/^@+/, "");
@@ -456,6 +518,59 @@ function getColumnWidth(column) {
                 }
             }
 
+
+
+            
+        // ==========================================================
+        // คำนวณยอดหลังชื่อคลิปตาม clipCountGroups
+        // ==========================================================
+        const clipUserTotals = Array(rows.length).fill(totalUsers);
+
+        // รองรับ date ที่อยู่คอลัมน์ 3
+        const firstUserColumn =
+            String(rows[0][2] ?? "").trim().toLowerCase() === "date"
+                ? 3 : 2;
+
+        for (let r = 2; r < rows.length; r++) {
+            const clipName = String(rows[r][0]).trim().toLowerCase();
+
+            const group = clipCountGroups.find(g =>
+                g.prefixes.some(prefix =>
+                    prefix && clipName.startsWith(prefix.toLowerCase())
+                )
+            );
+
+            // ไม่มีเงื่อนไขเฉพาะ: คงยอดนับทุก User
+            if (!group) continue;
+
+            const allowedUsers = new Set(
+                group.usernames.map(normalizedUsername)
+            );
+
+            let found = 0;
+            let total = 0;
+
+            for (let c = firstUserColumn; c < columns; c++) {
+                const username = normalizedUsername(rows[1][c]);
+
+                if (allowedUsers.has(username)) {
+                    total++;
+
+                    if (isCommented(rows[r][c])) {
+                        found++;
+                    }
+                }
+            }
+
+            commentedPerClip[r] = found;
+            clipUserTotals[r] = total;
+        }
+
+
+
+
+
+            
             const table = document.getElementById("commentsTable");
             table.replaceChildren();
 
@@ -521,7 +636,7 @@ function getColumnWidth(column) {
                         td.appendChild(link);
                     } else {
                         td.textContent = c === 0
-                            ? `${value} (${commentedPerClip[r]}/${totalUsers})`
+                            ? `${value} (${commentedPerClip[r]}/${clipUserTotals[r]})`
                             : value;
                         td.title = td.textContent;
                     }
