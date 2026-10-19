@@ -66,7 +66,7 @@
         }
 
         /* ==========================================================
-           2. ตารางและ Freeze หัวตาราง 2 แถว
+           2. ตารางและ Freeze หัวตาราง 1 แถว
            ========================================================== */
         .table-wrap {
             max-height: calc(100vh - 145px);
@@ -109,11 +109,6 @@
             top: 0;
         }
 
-        thead tr:nth-child(2) th {
-            top: 45px;
-            background: #f1f5f9;
-        }
-
         /* ==========================================================
            3. Freeze คอลัมน์ A (ชื่อคลิป) และ B (URL)
            ========================================================== */
@@ -137,11 +132,6 @@
         thead th:nth-child(2) {
             z-index: 8;
             background: #cbd5e1;
-        }
-
-        thead tr:nth-child(2) th:first-child,
-        thead tr:nth-child(2) th:nth-child(2) {
-            background: #dbeafe;
         }
 
         tbody td:first-child,
@@ -293,7 +283,7 @@
         }
 
         // ==========================================================
-        // 6. สร้างหัวตารางและข้อมูล พร้อมยอด (commented/all)
+        // 6. แสดงหัวตารางเฉพาะแถวแรกและข้อมูล พร้อมยอด (commented/all)
         // ==========================================================
         function drawTable(rows) {
             if (rows.length < 2) {
@@ -329,7 +319,7 @@
             table.appendChild(colgroup);
 
             const thead = document.createElement("thead");
-            for (let r = 0; r < 2; r++) {
+            for (let r = 0; r < 1; r++) {
                 const tr = document.createElement("tr");
 
                 for (let c = 0; c < columns; c++) {
