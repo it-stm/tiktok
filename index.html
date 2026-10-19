@@ -238,6 +238,39 @@
             { keyword: "phol",    color: "#F1F5F9" }  // เทาอ่อน
         ];
 
+        // กฎการนับยอดในหัวตารางตาม @username (อ่านจากหัวตาราง CSV แถวที่สอง)
+        // User ที่ไม่ได้อยู่ในรายการนี้จะนับทุกคลิป
+        const commentCountGroups = [
+            {
+                usernames: [
+                    "@tangkwaisuzu", "@2carbytangkwa", "@happi.ness1820",
+                    "@nichthiranan1215_k", "@sirinn_e", "@parchkrawnuch",
+                    "@ozeriskung", "@ninja9stm", "@surasakmuangto",
+                    "@rawsixonenines", "@user6156904622615"
+                ],
+                prefixes: ["tangkwa", "phol"]
+            },
+            {
+                usernames: [
+                    "@winey744", "@aunnatnicha176", "@bzonyaa",
+                    "@maynisa44", "@kaewp99", "@automoshi",
+                    "@xxxaey", "@xxxlek", "@ajchareeya_kung", "@xxxblue"
+                ],
+                prefixes: ["phol", "wine"]
+            }
+        ];
+
+        function normalizedUsername(value) {
+            return String(value ?? "").trim().toLowerCase().replace(/^@+/, "");
+        }
+
+        const countPrefixesByUser = new Map();
+        for (const group of commentCountGroups) {
+            for (const username of group.usernames) {
+                countPrefixesByUser.set(normalizedUsername(username), group.prefixes);
+            }
+        }
+
         // ==========================================================
         // 5. อ่าน CSV และรองรับ UTF-8 / UTF-16 / Windows-874
         // ==========================================================
@@ -344,13 +377,28 @@
             const clipCount = Math.max(0, rows.length - 2);
             const totalUsers = Math.max(0, columns - 2);
             const commentedCounts = Array(columns).fill(0);
+            const eligibleClipCounts = Array(columns).fill(clipCount);
             const commentedPerClip = Array(rows.length).fill(0);
 
+            // กำหนดขอบเขตคลิปที่จะนับของแต่ละคน โดยใช้ @username ใน CSV แถวที่สอง
+            const userPrefixes = Array.from({ length: columns }, (_, c) =>
+                c >= 2 ? countPrefixesByUser.get(normalizedUsername(rows[1][c])) : undefined
+            );
+            for (let c = 2; c < columns; c++) {
+                if (userPrefixes[c]) eligibleClipCounts[c] = 0;
+            }
+
             for (let r = 2; r < rows.length; r++) {
+                const clipNameForCount = String(rows[r][0]).trim().toLowerCase();
                 for (let c = 2; c < columns; c++) {
-                    if (isCommented(rows[r][c])) {
-                        commentedCounts[c]++;
-                        commentedPerClip[r]++;
+                    const commented = isCommented(rows[r][c]);
+                    // จำนวนคอมเมนต์ต่อคลิปยังคงนับทุก User ที่มีเครื่องหมาย ✓
+                    if (commented) commentedPerClip[r]++;
+                    const prefixes = userPrefixes[c];
+                    const eligible = !prefixes || prefixes.some(prefix => clipNameForCount.startsWith(prefix));
+                    if (eligible) {
+                        if (prefixes) eligibleClipCounts[c]++;
+                        if (commented) commentedCounts[c]++;
                     }
                 }
             }
@@ -373,7 +421,7 @@
                 for (let c = 0; c < columns; c++) {
                     const th = document.createElement("th");
                     const text = r === 0 && c >= 2
-                        ? `(${commentedCounts[c]}/${clipCount})\n${rows[r][c]}`
+                        ? `(${commentedCounts[c]}/${eligibleClipCounts[c]})\n${rows[r][c]}`
                         : rows[r][c];
 
                     th.textContent = text;
