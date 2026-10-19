@@ -511,8 +511,9 @@ function getColumnWidth(column) {
 
             document.getElementById("tableWrap")
                 .style.setProperty("--first-col-width", getColumnWidth(0) + "px");
-            document.getElementById("summary").textContent =
-                `จำนวนคลิป: ${clipCount} | จำนวนบัญชี: ${totalUsers}`;
+            document.getElementById("summary").innerHTML =
+                `<a href="http://xxx" target="_blank">จำนวนคลิป</a>: ${clipCount} |
+                 <a href="http://yyyyy" target="_blank">จำนวนบัญชี</a>: ${totalUsers}`;
         }
 
         function setCellWidth(cell, column) {
