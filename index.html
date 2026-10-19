@@ -453,10 +453,9 @@ function getColumnWidth(column) {
         // ==========================================================
         // ความกว้างของคอลัมน์ที่แสดง: 0=clip_name, 1=URL, 2=date,
         // ตั้งค่าคอลัมน์ User ใน columnWidths ตามเลขเดิมก่อนเพิ่ม date
-        function displayColumnWidth(column) {
-            if (column === 2) return 110; // ความกว้างวันที่ (px)
-            return getColumnWidth(column >= 3 ? column - 1 : column);
-        }
+    function displayColumnWidth(column) {
+        return getColumnWidth(column);
+    }
 
         function drawTable(rows) {
             if (rows.length < 2) {
