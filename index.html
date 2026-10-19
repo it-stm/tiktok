@@ -306,6 +306,13 @@
                 throw new Error("CSV ต้องมีหัวตาราง 2 แถว (display_name และ @username)");
             }
 
+            // ใช้คอลัมน์ date จาก CSV ได้ แต่ไม่แสดงและไม่นับเป็นบัญชี TikTok
+            // ไม่กรองคลิปตามวันที่ในหน้า index.html (แสดงทุกคลิป)
+            const dateColumn = rows[0].findIndex(cell => String(cell).trim().toLowerCase() === "date");
+            if (dateColumn !== -1) {
+                rows = rows.map(row => row.filter((_, index) => index !== dateColumn));
+            }
+
             const columns = Math.max(...rows.map(row => row.length));
             rows = rows.map(row => Array.from({ length: columns }, (_, i) => row[i] ?? ""));
 
