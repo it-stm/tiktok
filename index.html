@@ -352,7 +352,7 @@
 function getColumnWidth(column) {
     // ค่ารายคอลัมน์มีความสำคัญก่อนค่าช่วง
     if (columnWidths[column] !== undefined) {
-        return Math.max(70, Number(columnWidths[column]));
+        return Math.max(30, Number(columnWidths[column]));
     }
 
     // ตรวจสอบการกำหนดเป็นช่วง
@@ -364,12 +364,12 @@ function getColumnWidth(column) {
             const end = Number(match[2]);
 
             if (column >= start && column <= end) {
-                return Math.max(70, Number(width));
+                return Math.max(30, Number(width));
             }
         }
     }
 
-    return Math.max(70, defaultUserWidth);
+    return Math.max(30, defaultUserWidth);
 }
 
         // ==========================================================
