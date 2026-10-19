@@ -161,6 +161,12 @@
             text-align: center;
         }
 
+        /* เส้นแบ่งคอลัมน์เข้ม (ระบุตำแหน่งใน columnDividers ด้านล่าง) */
+        thead th.column-divider,
+        tbody td.column-divider {
+            border-right: 2px solid #475569;
+        }
+
     a.url {
         color: #2563eb;
 
@@ -209,6 +215,11 @@
             3: 130  // คอลัมน์ D: ผู้ใช้คนที่ 2
             // 4: 180, // เพิ่มความกว้างรายคอลัมน์ได้
         };
+
+        // เส้นแบ่งเข้ม "หลัง" คอลัมน์ตามหมายเลขที่แสดงบนตาราง (เริ่มนับจาก 1)
+        // เช่น 2 = ระหว่างคอลัมน์ 2-3, 7 = ระหว่าง 7-8
+        // แก้ตัวเลขในรายการนี้ได้เอง เพิ่ม/ลบได้ตามต้องการ
+        const columnDividers = [2, 10, 17];
 
         const defaultUserWidth = 130;
         const csvFileName = "COMMENT_CHECK.csv";
@@ -364,6 +375,7 @@
                     th.textContent = text;
                     th.title = text;
                     setCellWidth(th, c);
+                    if (columnDividers.includes(c + 1)) th.classList.add("column-divider");
                     tr.appendChild(th);
                 }
 
@@ -387,6 +399,7 @@
                     const commented = c >= 2 && isCommented(value);
 
                     setCellWidth(td, c);
+                    if (columnDividers.includes(c + 1)) td.classList.add("column-divider");
 
                     if (commented) {
                         td.classList.add("yes");
