@@ -222,16 +222,33 @@
             border-left: 2px solid #475569;
         }
 
+        .header-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        margin-bottom: 10px;
+        }
 
+        .header-row h1 {
+        margin: 0;
+        flex-shrink: 0;
+        }
+
+        .header-row .hint {
+        flex-shrink: 0;
+        }
         
     </style>
 </head>
 
 <body>
-    <h1 id="pageTitle">ตรวจสอบคอมเมนต์ TikTok</h1>
-
-    <div class="toolbar">
-        <span class="hint" id="summary">กำลังโหลด COMMENT_CHECK.csv...</span>
+    <div class="header-row">
+        <h1 id="pageTitle">ตรวจสอบคอมเมนต์ TikTok</h1>
+        <span class="hint" id="summary">
+            กำลังโหลด COMMENT_CHECK.csv...
+        </span>
     </div>
 
     <div class="error hidden" id="errorMessage" role="alert"></div>
