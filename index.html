@@ -203,6 +203,23 @@
             font-weight: bold;
             font-size: 18px;
         }
+
+         /* ตัวเลขยอดคอมเมนต์ ห้ามตัดบรรทัด */
+        .header-count {
+        display: block;
+        white-space: nowrap;
+        }
+
+        /* ชื่อผู้ใช้ ตัดบรรทัดได้ */
+        .header-name {
+            display: block;
+            overflow-wrap: anywhere;
+        }
+
+
+
+
+        
     </style>
 </head>
 
@@ -587,12 +604,28 @@ function getColumnWidth(column) {
 
                 for (let c = 0; c < columns; c++) {
                     const th = document.createElement("th");
-                    const text = r === 0 && c >= 3
-                        ? `(${commentedCounts[c]}/${eligibleClipCounts[c]})\n${rows[r][c]}`
-                        : rows[r][c];
 
-                    th.textContent = text;
-                    th.title = text;
+                    
+                    const text = String(rows[r][c]);
+
+            if (c >= 3) {
+                const count = document.createElement("span");
+                count.className = "header-count";
+                count.textContent =
+                    `(${commentedCounts[c]}/${eligibleClipCounts[c]})`;
+
+                const name = document.createElement("span");
+                name.className = "header-name";
+                name.textContent = text;
+
+                th.append(count, name);
+                th.title = count.textContent + "\n" + text;
+            } else {
+                th.textContent = text;
+                th.title = text;
+            }
+
+                    
                     setCellWidth(th, c);
                     if (columnDividers.includes(c + 1)) th.classList.add("column-divider");
                     tr.appendChild(th);
