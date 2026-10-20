@@ -1,4 +1,4 @@
-    <!doctype html>
+        <!doctype html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -315,23 +315,23 @@
         // กฎการนับยอดในหัวตารางตาม @username (อ่านจากหัวตาราง CSV แถวที่สอง)
         // User ที่ไม่ได้อยู่ในรายการนี้จะนับทุกคลิป
        const commentCountGroups = [
-    {
-        columns: [8, 18],
-        prefixes: ["tangkwa", "phol"]
-    },
-    {
-        columns: [19, 28],
-        prefixes: ["wine"]
-    },
-    {
-        columns: [29, 39],
-        prefixes: ["ae"]
-    },
-    {
-        columns: [40, 50],
-        prefixes: ["nut"]
-    }
-];
+            {
+                columns: [8, 18],
+                prefixes: ["tangkwa", "phol"]
+            },
+            {
+                columns: [19, 28],
+                prefixes: ["wine"]
+            },
+            {
+                columns: [29, 39],
+                prefixes: ["ae"]
+            },
+            {
+                columns: [40, 50],
+                prefixes: ["nut"]
+            }
+        ];
 
 
         
@@ -340,42 +340,23 @@
         // คลิปที่ไม่ได้กำหนดกลุ่ม จะนับ User ทุกคน
         // ==========================================================
         const clipCountGroups = [
-            {
-                prefixes: ["tangkwa"],
-                usernames: [
-                    "@tangkwaisuzu", "@2carbytangkwa", "@happi.ness1820",
-                    "@nichthiranan1215_k", "@sirinn_e", "@parchkrawnuch",
-                    "@ozeriskung", "@ninja9stm", "@surasakmuangto",
-                    "@rawsixonenines", "@user6156904622615"
-                ]
-            },
-            {
-                prefixes: ["wine"],
-                usernames: [
-                    "@winey744", "@aunnatnicha176", "@bzonyaa",
-                    "@maynisa44", "@kaewp99", "@automoshi",
-                    "@byaey0", "@t1924731", "@ajchareeya_kung", "@xxxblue"
-                ]
-            },
-            {
-                prefixes: ["ae"],
-                usernames: ["@isuzubyae", "@usecarbyae", "@tu_mooinm",
-                    "@xxx", "@xxx", "@lilac_lilala",
-                    "@puysumaman", "@18chicha", "@xxx",
-                    "@xxx","@xxx"]
-            },
-            {
-                prefixes: ["nut"],
-                usernames:[
-                    "@pandanutisuzu", "@pandanut_car2", "@synkornizemss",
-                    "@wanpatcha", "@piglettt.18", "@yyy",
-                    "@sangarunwatananak", "@phon.son7", "@surasitmuangto", 
-                    "@yyy", "@301408nn"
-                ],
-            }
-        ];
-
-
+    {
+        prefixes: ["tangkwa"],
+        columns: [8, 18]
+    },
+    {
+        prefixes: ["wine"],
+        columns: [19, 28]
+    },
+    {
+        prefixes: ["ae"],
+        columns: [29, 39]
+    },
+    {
+        prefixes: ["nut"],
+        columns: [40, 50]
+    }
+];
 
 
 
@@ -616,40 +597,35 @@ function getColumnWidth(column) {
 
 
 
-            
+ 
         // ==========================================================
-        // คำนวณยอดหลังชื่อคลิปตาม clipCountGroups
+        // คำนวณยอดหลังชื่อคลิป ตามช่วงหมายเลขคอลัมน์
+        // คลิปอื่นที่ไม่กำหนดกลุ่ม จะนับทุก User
+        // จุดที่ 2 — แก้ส่วนคำนวณยอดหลังชื่อคลิป
         // ==========================================================
         const clipUserTotals = Array(rows.length).fill(totalUsers);
-
-        // รองรับ date ที่อยู่คอลัมน์ 3
-        const firstUserColumn =
-            String(rows[0][2] ?? "").trim().toLowerCase() === "date"
-                ? 3 : 2;
 
         for (let r = 2; r < rows.length; r++) {
             const clipName = String(rows[r][0]).trim().toLowerCase();
 
             const group = clipCountGroups.find(g =>
                 g.prefixes.some(prefix =>
-                    prefix && clipName.startsWith(prefix.toLowerCase())
+                    clipName.startsWith(prefix.toLowerCase())
                 )
             );
 
-            // ไม่มีเงื่อนไขเฉพาะ: คงยอดนับทุก User
+            // ไม่อยู่ในกลุ่มที่กำหนด -> ใช้ยอดทุก User ตามเดิม
             if (!group) continue;
 
-            const allowedUsers = new Set(
-                group.usernames.map(normalizedUsername)
-            );
-
+            const [start, end] = group.columns;
             let found = 0;
             let total = 0;
 
-            for (let c = firstUserColumn; c < columns; c++) {
-                const username = normalizedUsername(rows[1][c]);
+            // c เป็น index เริ่มจาก 0; คอลัมน์หน้าเว็บ = c + 1
+            for (let c = 3; c < columns; c++) {
+                const columnNumber = c + 1;
 
-                if (allowedUsers.has(username)) {
+                if (columnNumber >= start && columnNumber <= end) {
                     total++;
 
                     if (isCommented(rows[r][c])) {
@@ -663,8 +639,7 @@ function getColumnWidth(column) {
         }
 
 
-
-
+        // end   จุดที่ 2 — แก้ส่วนคำนวณยอดหลังชื่อคลิป
 
             
             const table = document.getElementById("commentsTable");
