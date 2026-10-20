@@ -216,7 +216,11 @@
             overflow-wrap: anywhere;
         }
 
-
+        /* เส้นเข้มก่อนคอลัมน์แรก */
+        thead th.column-divider-left,
+        tbody td.column-divider-left {
+            border-left: 2px solid #475569;
+        }
 
 
         
@@ -680,7 +684,16 @@ function getColumnWidth(column) {
 
                     
                     setCellWidth(th, c);
+
+                    // เส้นเข้มหลังคอลัมน์ตามหมายเลขที่กำหนด
                     if (columnDividers.includes(c + 1)) th.classList.add("column-divider");
+
+                    // เส้นเข้มก่อนคอลัมน์แรก เมื่อกำหนดเลข 0
+                    if (c === 0 && columnDividers.includes(0))
+                    th.classList.add("column-divider-left");
+
+
+                    
                     tr.appendChild(th);
                 }
 
@@ -705,6 +718,10 @@ function getColumnWidth(column) {
 
                     setCellWidth(td, c);
                     if (columnDividers.includes(c + 1)) td.classList.add("column-divider");
+
+                    if (c === 0 && columnDividers.includes(0))
+                    td.classList.add("column-divider-left");
+                    
 
                     if (commented) {
                         td.classList.add("yes");
