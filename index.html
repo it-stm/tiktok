@@ -1,4 +1,4 @@
-<!doctype html>
+    <!doctype html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -501,6 +501,18 @@ function getColumnWidth(column) {
             // ย้าย date จากคอลัมน์ท้าย CSV มาแสดงที่ C โดยไม่เปลี่ยนไฟล์ CSV
             // หน้า index.html ยังแสดงทุกคลิป ไม่กรองวันที่
             const dateColumn = rows[0].findIndex(cell => String(cell).trim().toLowerCase() === "date");
+
+        // อ่านเวลาสร้างไฟล์จากหัวตาราง CSV แถวที่สอง
+        const createdTime = dateColumn !== -1
+            ? String(rows[1][dateColumn] ?? "").trim()
+            : "";
+
+        // เก็บเวลาไว้ใช้แสดงที่หัวข้อเว็บ
+        document.getElementById("pageTitle").dataset.createdTime = createdTime;
+
+
+
+            
             if (dateColumn === -1) {
                 throw new Error("COMMENT_CHECK.csv ต้องมีคอลัมน์ date");
             }
@@ -767,8 +779,16 @@ function getColumnWidth(column) {
                 year: "numeric"
             }).format(new Date());
 
-            document.getElementById("pageTitle").textContent =
-                `ตรวจสอบคอมเมนต์ TikTok ${today} 8:20`;
+            const pageTitle = document.getElementById("pageTitle");
+            const createdTime = pageTitle.dataset.createdTime || "--:--";
+
+            pageTitle.textContent =
+            `ตรวจสอบคอมเมนต์ TikTok ${today} ${createdTime}`;
+
+
+
+
+                
               } catch (error) {
                    errorBox.textContent = String(error.message || error);
                   errorBox.classList.remove("hidden");
