@@ -279,6 +279,19 @@
             { keyword: "phol",    color: "#F1F5F9" }  // เทาอ่อน
         ];
 
+
+            // เรียงลำดับ clip_name
+            const clipSortOrder = [
+            "phol",
+            "tangkwa",
+            "wine",
+            "ae",
+            "nut"
+        ];
+
+
+        
+
         // กฎการนับยอดในหัวตารางตาม @username (อ่านจากหัวตาราง CSV แถวที่สอง)
         // User ที่ไม่ได้อยู่ในรายการนี้จะนับทุกคลิป
         const commentCountGroups = [
@@ -503,12 +516,35 @@ function getColumnWidth(column) {
 
             // เรียงเฉพาะแถวข้อมูลตาม clip_name (A-Z, ไม่สนตัวพิมพ์เล็กใหญ่)
             // คงหัวตาราง CSV สองแถวแรกไว้ และเรียงแบบตัวเลขตามธรรมชาติ เช่น clip2 ก่อน clip10
-            const sortedClips = rows.slice(2).sort((a, b) =>
-                String(a[0]).localeCompare(String(b[0]), undefined, {
-                    sensitivity: "base",
-                    numeric: true
-                })
+ 
+            const getClipSortRank = (name) => {
+            const clipName = String(name).trim().toLowerCase();
+
+            const index = clipSortOrder.findIndex(prefix =>
+                clipName.startsWith(prefix.toLowerCase())
             );
+
+            return index === -1 ? clipSortOrder.length : index;
+        };
+
+        const sortedClips = rows.slice(2).sort((a, b) => {
+            const rankA = getClipSortRank(a[0]);
+            const rankB = getClipSortRank(b[0]);
+
+            if (rankA !== rankB) {
+                return rankA - rankB;
+            }
+
+            return String(a[0]).localeCompare(String(b[0]), undefined, {
+                sensitivity: "base",
+                numeric: true
+            });
+        });
+
+
+
+
+            
             rows = [...rows.slice(0, 2), ...sortedClips];
 
             const clipCount = Math.max(0, rows.length - 2);
