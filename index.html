@@ -314,45 +314,24 @@
 
         // กฎการนับยอดในหัวตารางตาม @username (อ่านจากหัวตาราง CSV แถวที่สอง)
         // User ที่ไม่ได้อยู่ในรายการนี้จะนับทุกคลิป
-        const commentCountGroups = [
-            {
-                usernames: [
-                    "@tangkwaisuzu", "@2carbytangkwa", "@happi.ness1820",
-                    "@nichthiranan1215_k", "@sirinn_e", "@parchkrawnuch",
-                    "@ozeriskung", "@ninja9stm", "@surasakmuangto",
-                    "@rawsixonenines", "@user6156904622615"
-                ],
-                prefixes: ["tangkwa","phol"]
-            },
-            {
-                usernames: [
-                    "@winey744", "@aunnatnicha176", "@bzonyaa",
-                    "@maynisa44", "@kaewp99", "@automoshi",
-                    "@byaey0", "@t1924731", "@ajchareeya_kung", 
-                    "@xxxblue"
-                ],
-                prefixes: ["wine"]
-            },
-            {
-                usernames: [
-                    "@isuzubyae", "@usecarbyae", "@tu_mooinm",
-                    "@xxx", "@xxx", "@lilac_lilala",
-                    "@puysumaman", "@18chicha", "@xxx",
-                    "@xxx","@xxx"
-                ],
-                prefixes: ["ae"]
-            },
-            {
-                usernames: [
-                    "@pandanutisuzu", "@pandanut_car2", "@synkornizemss",
-                    "@wanpatcha", "@piglettt.18", "@yyy",
-                    "@sangarunwatananak", "@phon.son7", "@surasitmuangto", 
-                    "@yyy", "@301408nn"
-                ],
-                prefixes: ["nut"]
-            }
-           
-        ];
+       const commentCountGroups = [
+    {
+        columns: [8, 18],
+        prefixes: ["tangkwa", "phol"]
+    },
+    {
+        columns: [19, 28],
+        prefixes: ["wine"]
+    },
+    {
+        columns: [29, 39],
+        prefixes: ["ae"]
+    },
+    {
+        columns: [40, 50],
+        prefixes: ["nut"]
+    }
+];
 
 
         
@@ -411,12 +390,22 @@
             return String(value ?? "").trim().toLowerCase().replace(/^@+/, "");
         }
 
-        const countPrefixesByUser = new Map();
-        for (const group of commentCountGroups) {
-            for (const username of group.usernames) {
-                countPrefixesByUser.set(normalizedUsername(username), group.prefixes);
+
+        
+
+          const countPrefixesByColumn = new Map();
+
+            for (const group of commentCountGroups) {
+                const [start, end] = group.columns;
+
+                    for (let column = start; column <= end; column++) {
+                        countPrefixesByColumn.set(column, group.prefixes);
             }
         }
+
+
+ 
+        
 
         // ==========================================================
         // 5. อ่าน CSV และรองรับ UTF-8 / UTF-16 / Windows-874
@@ -594,9 +583,18 @@ function getColumnWidth(column) {
             const commentedPerClip = Array(rows.length).fill(0);
 
             // กำหนดขอบเขตคลิปที่จะนับของแต่ละคน โดยใช้ @username ใน CSV แถวที่สอง
-            const userPrefixes = Array.from({ length: columns }, (_, c) =>
-                c >= 3 ? countPrefixesByUser.get(normalizedUsername(rows[1][c])) : undefined
-            );
+
+
+
+            
+         const userPrefixes = Array.from({ length: columns }, (_, c) =>
+            c >= 3
+                ? countPrefixesByColumn.get(c + 1)
+                : undefined
+        );
+
+ 
+            
             for (let c = 3; c < columns; c++) {
                 if (userPrefixes[c]) eligibleClipCounts[c] = 0;
             }
