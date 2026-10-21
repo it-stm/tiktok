@@ -205,17 +205,28 @@
             font-size: 18px;
         }
 
+            
+
          /* ตัวเลขยอดคอมเมนต์ ห้ามตัดบรรทัด */
+      /* ยอดคอมเมนต์อยู่บรรทัดบน */
         .header-count {
-        display: block;
-        white-space: nowrap;
+            display: block;
+            white-space: nowrap;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
 
-        /* ชื่อผู้ใช้ ตัดบรรทัดได้ */
+        /* ชื่อผู้ใช้อยู่บรรทัดล่าง */
         .header-name {
             display: block;
+            white-space: normal;
             overflow-wrap: anywhere;
+            font-weight: bold;
         }
+
+
+
+            
 
         /* เส้นเข้มก่อนคอลัมน์แรก */
         thead th.column-divider-left,
