@@ -264,16 +264,27 @@
 
  
         @font-face {
-                    font-family: "ThaiMono";
-                    src: url("./fonts/TlwgTypist.woff") format("woff");
-                    font-weight: 400;
-                    font-style: normal;
-                    font-display: swap;
+            font-family: "Fira Code";
+            src: url("./fonts/FiraCode-Regular.woff2") format("woff2");
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
         }
 
 
-            
-            
+            /* ตัวเลขยอดคอมเมนต์ แถวบน */
+                thead tr:first-child th:not([rowspan]) {
+                    font-family: "Fira Code", Consolas, monospace;
+                    font-size: 13px;
+                    font-weight: 400;
+                }
+
+        /* ตัวเลขยอดหลังชื่อคลิป */
+                tbody td:nth-child(2) {
+                    font-family: "Fira Code", Consolas, monospace;
+                    font-size: 13px;
+                }
+                  
         
     </style>
 </head>
