@@ -66,7 +66,7 @@
         }
 
         /* ==========================================================
-           2. ตารางและ Freeze หัวตาราง 1 แถว
+           2. ตารางและ Freeze หัวตาราง 2 แถว
            ========================================================== */
         .table-wrap {
             max-height: calc(100vh - 60px);
@@ -97,64 +97,57 @@
         }
 
             thead th {
-                background: #e2e8f0;
-                border-bottom: 2px solid #475569; /* เทาเข้ม 2px */
-                font-weight: 700;
-                text-align: center;
-                height: 70px;
-                position: sticky;
-                z-index: 3;
+            background: #e2e8f0;
+            font-weight: 700;
+            text-align: center;
+            position: sticky;
+            z-index: 6;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            text-overflow: clip;
+            line-height: 1.35;
+            vertical-align: middle;
+        }
 
-                white-space: pre-wrap;
-                overflow-wrap: anywhere;
-                text-overflow: clip;
-                line-height: 1.4;
-                vertical-align: middle;
-            }
-
+        /* หัวตารางจริง 2 แถว: ยอดด้านบน / ชื่อด้านล่าง */
         thead tr:first-child th {
             top: 0;
+            height: 32px;
+            padding: 2px 2px;
+            white-space: nowrap;
+            border-bottom: 1px solid #94a3b8;
+        }
+        thead tr:nth-child(2) th {
+            top: 32px;
+            height: 65px;
+            padding: 4px 3px;
+            border-bottom: 3px solid #475569;
+        }
+        thead tr:first-child th[rowspan="2"] {
+            height: 97px;
+            top: 0;
+            border-bottom: 3px solid #475569;
         }
 
         /* ==========================================================
            3. Freeze คอลัมน์ A (ชื่อคลิป) และ B (URL)
            ========================================================== */
-        th:first-child,
-        td:first-child {
+        /* Freeze คอลัมน์ A=ชื่อคลิป B=ยอด C=URL D=date */
+        .freeze-0, .freeze-1, .freeze-2, .freeze-3 {
             position: sticky;
-            left: 0;
-            z-index: 4;
             box-shadow: 2px 0 3px #00000012;
         }
+        .freeze-0 { left: 0; }
+        .freeze-1 { left: var(--freeze-a-width); }
+        .freeze-2 { left: var(--freeze-ab-width); }
+        .freeze-3 { left: var(--freeze-abc-width); }
 
-        th:nth-child(2),
-        td:nth-child(2) {
-            position: sticky;
-            left: var(--first-col-width);
+        tbody .freeze-0, tbody .freeze-1, tbody .freeze-2, tbody .freeze-3 {
             z-index: 4;
-            box-shadow: 2px 0 3px #00000012;
         }
-
-        /* Freeze คอลัมน์ C: date (อยู่ถัดจาก clip_name และ URL) */
-        th:nth-child(3),
-        td:nth-child(3) {
-            position: sticky;
-            left: var(--first-two-cols-width);
-            z-index: 4;
-            box-shadow: 2px 0 3px #00000012;
-        }
-
-        thead th:first-child,
-        thead th:nth-child(2),
-        thead th:nth-child(3) {
-            z-index: 8;
+        thead .freeze-0, thead .freeze-1, thead .freeze-2, thead .freeze-3 {
+            z-index: 9;
             background: #cbd5e1;
-        }
-
-        tbody td:first-child,
-        tbody td:nth-child(2),
-        tbody td:nth-child(3) {
-            background: white;
         }
 
         tbody td:first-child {
@@ -352,7 +345,7 @@
 
         
 
-        // กฎการนับยอดในหัวตารางตาม @username (อ่านจากหัวตาราง CSV แถวที่สอง)
+        // กฎการนับยอดในหัวตารางตามตำแหน่งคอลัมน์เดิมก่อนเพิ่มยอด
         // User ที่ไม่ได้อยู่ในรายการนี้จะนับทุกคลิป
        const commentCountGroups = [
             {
@@ -526,7 +519,7 @@ function getColumnWidth(column) {
         // 6. แสดงหัวตารางเฉพาะแถวแรกและข้อมูล พร้อมยอด (commented/all)
         // ==========================================================
         // ความกว้างของคอลัมน์ที่แสดง: 0=clip_name, 1=URL, 2=date,
-        // ตั้งค่าคอลัมน์ User ใน columnWidths ตามเลขเดิมก่อนเพิ่ม date
+        // columnWidths ใช้ index คอลัมน์เดิม (0-based) ก่อนเพิ่มคอลัมน์ยอด
     function displayColumnWidth(column) {
         return getColumnWidth(column);
     }
@@ -603,7 +596,7 @@ function getColumnWidth(column) {
             const eligibleClipCounts = Array(columns).fill(clipCount);
             const commentedPerClip = Array(rows.length).fill(0);
 
-            // กำหนดขอบเขตคลิปที่จะนับของแต่ละคน โดยใช้ @username ใน CSV แถวที่สอง
+            // กำหนดขอบเขตคลิปของแต่ละคนจากคอลัมน์เดิมก่อนเพิ่มคอลัมน์ยอด
 
 
 
@@ -685,73 +678,71 @@ function getColumnWidth(column) {
             const table = document.getElementById("commentsTable");
             table.replaceChildren();
 
+            // แสดงคอลัมน์พิเศษ "ยอด" ต่อจากชื่อคลิป (ไม่ต้องแก้ CSV)
+            // กฎ commentCountGroups, clipCountGroups, headerColorGroups
+            // ยังใช้เลขคอลัมน์เดิมก่อนเพิ่มคอลัมน์ยอด เพื่อไม่ให้กลุ่มคลาดเคลื่อน
+            const displayColumns = columns + 1;
+            const visibleWidth = p => p === 1 ? 76 : displayColumnWidth(p === 0 ? 0 : p - 1);
+            const originalColumn = p => p === 0 ? 0 : p - 1;
+            const visibleDividers = new Set(columnDividers.map(n => n === 0 ? 0 : n + 1));
+
+            function decorateCell(cell, p) {
+                const width = visibleWidth(p) + "px";
+                cell.style.width = width;
+                cell.style.minWidth = width;
+                cell.style.maxWidth = width;
+                if (p < 4) cell.classList.add(`freeze-${p}`);
+                if (visibleDividers.has(p + 1)) cell.classList.add("column-divider");
+                if (p === 0 && visibleDividers.has(0)) cell.classList.add("column-divider-left");
+            }
+
             const colgroup = document.createElement("colgroup");
-            for (let c = 0; c < columns; c++) {
+            for (let p = 0; p < displayColumns; p++) {
                 const col = document.createElement("col");
-                col.style.width = displayColumnWidth(c) + "px";
+                col.style.width = visibleWidth(p) + "px";
                 colgroup.appendChild(col);
             }
             table.appendChild(colgroup);
 
             const thead = document.createElement("thead");
-            for (let r = 0; r < 1; r++) {
-                const tr = document.createElement("tr");
+            const countRow = document.createElement("tr");
+            const nameRow = document.createElement("tr");
 
-                for (let c = 0; c < columns; c++) {
+            for (let p = 0; p < displayColumns; p++) {
+                const c = originalColumn(p);
+                // A-D ครอบทั้ง 2 แถว: ชื่อคลิป / ยอด / URL / date
+                if (p < 4) {
                     const th = document.createElement("th");
-
-                        // กำหนดสีหัวตารางตามช่วงคอลัมน์
-                        const columnNumber = c + 1;
-
-                        const headerGroup = headerColorGroups.find(group => {
-                            const [start, end] = group.columns;
-                            return columnNumber >= start && columnNumber <= end;
-                        });
-
-                        if (headerGroup) {
-                            th.style.backgroundColor = headerGroup.color;
-                        }
-
-
-
-                        
-                    
-                    const text = String(rows[r][c]);
-
-            if (c >= 3) {
-                const count = document.createElement("span");
-                count.className = "header-count";
-                count.textContent =
-                    `(${commentedCounts[c]}/${eligibleClipCounts[c]})`;
-
-                const name = document.createElement("span");
-                name.className = "header-name";
-                name.textContent = text;
-
-                th.append(count, name);
-                th.title = count.textContent + "\n" + text;
-            } else {
-                th.textContent = text;
-                th.title = text;
-            }
-
-                    
-                    setCellWidth(th, c);
-
-                    // เส้นเข้มหลังคอลัมน์ตามหมายเลขที่กำหนด
-                    if (columnDividers.includes(c + 1)) th.classList.add("column-divider");
-
-                    // เส้นเข้มก่อนคอลัมน์แรก เมื่อกำหนดเลข 0
-                    if (c === 0 && columnDividers.includes(0))
-                    th.classList.add("column-divider-left");
-
-
-                    
-                    tr.appendChild(th);
+                    const title = p === 1 ? "ยอด" : String(rows[0][c]);
+                    th.textContent = title;
+                    th.title = title;
+                    th.rowSpan = 2;
+                    decorateCell(th, p);
+                    countRow.appendChild(th);
+                    continue;
                 }
 
-                thead.appendChild(tr);
+                const group = headerColorGroups.find(g => {
+                    const [from, to] = g.columns;
+                    // ตำแหน่งเดิมจาก CSV (ก่อนเพิ่มยอด)
+                    return c + 1 >= from && c + 1 <= to;
+                });
+                const countTh = document.createElement("th");
+                countTh.textContent = `(${commentedCounts[c]}/${eligibleClipCounts[c]})`;
+                countTh.title = countTh.textContent;
+                const nameTh = document.createElement("th");
+                nameTh.textContent = String(rows[0][c]);
+                nameTh.title = nameTh.textContent;
+                decorateCell(countTh, p);
+                decorateCell(nameTh, p);
+                if (group) {
+                    countTh.style.backgroundColor = group.color;
+                    nameTh.style.backgroundColor = group.color;
+                }
+                countRow.appendChild(countTh);
+                nameRow.appendChild(nameTh);
             }
+            thead.append(countRow, nameRow);
             table.appendChild(thead);
 
             const tbody = document.createElement("tbody");
@@ -764,48 +755,41 @@ function getColumnWidth(column) {
                     tr.style.setProperty("--clip-row-color", matchedColor.color);
                 }
 
-                for (let c = 0; c < columns; c++) {
+                for (let p = 0; p < displayColumns; p++) {
                     const td = document.createElement("td");
-                    const value = String(rows[r][c]).trim();
-                    const commented = c >= 3 && isCommented(value);
-
-                    setCellWidth(td, c);
-                    if (columnDividers.includes(c + 1)) td.classList.add("column-divider");
-
-                    if (c === 0 && columnDividers.includes(0))
-                    td.classList.add("column-divider-left");
-                    
-
-                    if (commented) {
-                        td.classList.add("yes");
-                    }
-
-                    if (c === 1 && /^https?:\/\//i.test(value)) {
-                        const link = document.createElement("a");
-                        link.className = "url";
-                        link.href = value;
-                        link.target = "_blank";
-                        link.rel = "noopener noreferrer";
-                        link.title = value;
-                        link.textContent = value;
-                        td.appendChild(link);
-                    } else {
-                        td.textContent = c === 0
-                            ? `${value} (${commentedPerClip[r]}/${clipUserTotals[r]})`
-                            : value;
+                    decorateCell(td, p);
+                    if (p === 1) {
+                        td.style.textAlign = "center";
+                        td.textContent = `(${commentedPerClip[r]}/${clipUserTotals[r]})`;
                         td.title = td.textContent;
+                    } else {
+                        const c = originalColumn(p);
+                        const value = String(rows[r][c]).trim();
+                        if (c >= 3 && isCommented(value)) td.classList.add("yes");
+                        if (c === 1 && /^https?:\/\//i.test(value)) {
+                            const link = document.createElement("a");
+                            link.className = "url";
+                            link.href = value;
+                            link.target = "_blank";
+                            link.rel = "noopener noreferrer";
+                            link.title = value;
+                            link.textContent = value;
+                            td.appendChild(link);
+                        } else {
+                            td.textContent = value;
+                            td.title = value;
+                        }
                     }
-
                     tr.appendChild(td);
                 }
-
                 tbody.appendChild(tr);
             }
             table.appendChild(tbody);
 
             const tableWrap = document.getElementById("tableWrap");
-            tableWrap.style.setProperty("--first-col-width", displayColumnWidth(0) + "px");
-            tableWrap.style.setProperty("--first-two-cols-width", (displayColumnWidth(0) + displayColumnWidth(1)) + "px");
+            tableWrap.style.setProperty("--freeze-a-width", visibleWidth(0) + "px");
+            tableWrap.style.setProperty("--freeze-ab-width", (visibleWidth(0) + visibleWidth(1)) + "px");
+            tableWrap.style.setProperty("--freeze-abc-width", (visibleWidth(0) + visibleWidth(1) + visibleWidth(2)) + "px");
             document.getElementById("summary").innerHTML =
                 `<a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=886166879#gid=886166879" target="_blank">จำนวนคลิป</a>: ${clipCount} |
                  <a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=1397412964#gid=1397412964" target="_blank">จำนวนบัญชี</a>: ${totalUsers}`;
