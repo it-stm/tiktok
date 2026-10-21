@@ -686,7 +686,7 @@ function getColumnWidth(column) {
             // กฎ commentCountGroups, clipCountGroups, headerColorGroups
             // ยังใช้เลขคอลัมน์เดิมก่อนเพิ่มคอลัมน์ยอด เพื่อไม่ให้กลุ่มคลาดเคลื่อน
             const displayColumns = columns + 1;
-            const visibleWidth = p => p === 1 ? 76 : displayColumnWidth(p === 0 ? 0 : p - 1);
+            const visibleWidth = p => displayColumnWidth(p);
             const originalColumn = p => p === 0 ? 0 : p - 1;
             const visibleDividers = new Set(columnDividers.map(n => n === 0 ? 0 : n + 1));
 
