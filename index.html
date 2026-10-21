@@ -286,6 +286,32 @@
         // แก้ตัวเลขในรายการนี้ได้เอง เพิ่ม/ลบได้ตามต้องการ
         const columnDividers = [0, 3, 7, 18, 28, 39, 50];  
 
+        // สีพื้นหลังหัวตาราง ตามหมายเลขคอลัมน์ที่แสดงจริง (เริ่มจาก 1)
+        const headerColorGroups = [
+            {
+                columns: [8, 18],
+                color: "#FCE7F3"  // tangkwa - ชมพู
+            },
+            {
+                columns: [19, 28],
+                color: "#F3E8FF"  // wine - ม่วง
+            },
+            {
+                columns: [29, 39],
+                color: "#FFEDD5"  // ae - ส้ม
+            },
+            {
+                columns: [40, 50],
+                color: "#E0F2FE"  // nut - ฟ้า
+            }
+        ];
+
+
+
+
+
+
+            
         const defaultUserWidth = 60;
         const csvFileName = "COMMENT_CHECK.csv";
 
@@ -660,6 +686,21 @@ function getColumnWidth(column) {
                 for (let c = 0; c < columns; c++) {
                     const th = document.createElement("th");
 
+                        // กำหนดสีหัวตารางตามช่วงคอลัมน์
+                        const columnNumber = c + 1;
+
+                        const headerGroup = headerColorGroups.find(group => {
+                            const [start, end] = group.columns;
+                            return columnNumber >= start && columnNumber <= end;
+                        });
+
+                        if (headerGroup) {
+                            th.style.backgroundColor = headerGroup.color;
+                        }
+
+
+
+                        
                     
                     const text = String(rows[r][c]);
 
