@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TikTok Comment Check</title>
+    <title>TikTok Comment Check </title>
 
  
 
@@ -262,6 +262,42 @@
         flex-shrink: 0;
         }
 
+    
+        /* Dropdown ไม่มีกรอบ ตัวเลขชิดขวา และมีลูกศร */
+                #daySelector {
+                    font: inherit;
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: inherit;
+
+                    /* เปลี่ยนจาก 50px เป็น auto */
+                    width: auto;
+                        
+                    text-align: right;
+                    text-align-last: right;
+
+                    border: none;
+                    outline: none;
+                    background: transparent;
+                    box-shadow: none;
+
+                    padding: 0 0px 0 0;
+                    margin: 0;
+                    cursor: pointer;
+
+                    appearance: auto;          /* แสดงลูกศร Dropdown */
+                    -webkit-appearance: menulist;
+                }
+
+                #daySelector:hover {
+                    text-decoration: underline;
+                }
+
+                #daySelector:focus-visible {
+                    outline: 1px solid #94a3b8;
+                    outline-offset: 1px;
+        }
+
  
         @font-face {
             font-family: "Fira Code";
@@ -293,7 +329,42 @@
 
 <body>
     <div class="header-row">
-        <h1 id="pageTitle">ตรวจสอบคอมเมนต์ TikTok</h1>
+        <h1 id="pageTitle">ตรวจสอบคอมเมนต์ TikTok |
+            <select id="daySelector" aria-label="เลือกจำนวนวันย้อนหลัง">
+                <option value="All">All</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18">18</option>
+                <option value="19">19</option>
+                <option value="20">20</option>
+                <option value="21">21</option>
+                <option value="22">22</option>
+                <option value="23">23</option>
+                <option value="24">24</option>
+                <option value="25">25</option>
+                <option value="26">26</option>
+                <option value="27">27</option>
+                <option value="28">28</option>
+                <option value="29">29</option>
+                <option value="30">30</option>
+            </select>
+Days | <span id="titleDate"></span>
+        </h1>
         <span class="hint" id="summary">
             กำลังโหลด COMMENT_CHECK.csv...
         </span>
@@ -358,6 +429,61 @@
  
         const defaultUserWidth = 60;
         const csvFileName = "COMMENT_CHECK.csv";
+
+        // จำนวนวันย้อนหลังที่ต้องการแสดง (0 = วันนี้เท่านั้น)
+        // ตัวอย่าง 3 = วันนี้และคลิปย้อนหลังไม่เกิน 3 วัน
+        const X = "All"; // ค่าเริ่มต้น: 1-30 หรือ "All"
+        const daySelector = document.getElementById("daySelector");
+        daySelector.value = String(X);
+        let allCsvRows = null;
+
+        function updatePageTitle() {
+            const today = new Intl.DateTimeFormat("en-GB", {
+                timeZone: "Asia/Bangkok",
+                day: "2-digit", month: "2-digit", year: "numeric"
+            }).format(new Date());
+            const createdTime = document.getElementById("pageTitle").dataset.createdTime || "--:--";
+            document.getElementById("titleDate").textContent = `${today} ${createdTime}`;
+        }
+
+        daySelector.addEventListener("change", () => {
+            if (!allCsvRows) return;
+            try {
+                drawTable(allCsvRows);
+                updatePageTitle();
+            } catch (error) {
+                const errorBox = document.getElementById("errorMessage");
+                errorBox.textContent = String(error.message || error);
+                errorBox.classList.remove("hidden");
+            }
+        });
+
+        // คำนวณอายุคลิปจากวันที่ในประเทศไทย (Asia/Bangkok)
+        // เทียบเป็นวันปฏิทิน จึงไม่ขึ้นกับเวลาที่ผู้ใช้เปิดเว็บ
+        function getThaiTodayDayNumber() {
+            const parts = new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Bangkok",
+                year: "numeric", month: "2-digit", day: "2-digit"
+            }).formatToParts(new Date());
+            const get = type => Number(parts.find(part => part.type === type).value);
+            return Date.UTC(get("year"), get("month") - 1, get("day")) / 86400000;
+        }
+
+        function isWithinLastXDays(dateText, todayDayNumber, selectedDays) {
+            const match = String(dateText ?? "").trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+            if (!match) return false;
+            const year = Number(match[1]);
+            const month = Number(match[2]);
+            const day = Number(match[3]);
+            const utc = Date.UTC(year, month - 1, day);
+            const parsed = new Date(utc);
+            // ปฏิเสธวันที่ผิด เช่น 2026-02-31
+            if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() + 1 !== month || parsed.getUTCDate() !== day) {
+                return false;
+            }
+            const ageDays = todayDayNumber - utc / 86400000;
+            return ageDays >= 0 && ageDays <= selectedDays;
+        }
 
         // สีแถวตามคำที่พบใน clip_name (ไม่สนใจตัวพิมพ์เล็ก-ใหญ่)
         // หากชื่อคลิปมีหลายคำที่ตรงกัน จะใช้สีของคำที่อยู่ก่อนในรายการ
@@ -567,8 +693,8 @@ function getColumnWidth(column) {
                 throw new Error("CSV ต้องมีหัวตาราง 2 แถว (display_name และ @username)");
             }
 
-            // ย้าย date จากคอลัมน์ท้าย CSV มาแสดงที่ C โดยไม่เปลี่ยนไฟล์ CSV
-            // หน้า index.html ยังแสดงทุกคลิป ไม่กรองวันที่
+            // ย้าย date จากคอลัมน์ท้าย CSV มาแสดงที่คอลัมน์วันที่
+            // และคัดเฉพาะคลิปย้อนหลังไม่เกิน X วัน (เวลาไทย)
             const dateColumn = rows[0].findIndex(cell => String(cell).trim().toLowerCase() === "date");
 
         // อ่านเวลาสร้างไฟล์จากหัวตาราง CSV แถวที่สอง
@@ -594,6 +720,17 @@ function getColumnWidth(column) {
 
             const columns = Math.max(...rows.map(row => row.length));
             rows = rows.map(row => Array.from({ length: columns }, (_, i) => row[i] ?? ""));
+
+            // หัว CSV 2 แถวแรกเก็บไว้เสมอ; กรองเฉพาะแถวคลิปจาก date ที่ย้ายมา index 2
+            // กรองก่อนนับยอดทุกชนิด เพื่อให้เศษ/ส่วนตรงกับคลิปที่แสดงจริง
+            const selectedDays = daySelector.value;
+            if (selectedDays !== "All") {
+                const thaiToday = getThaiTodayDayNumber();
+                rows = [
+                    ...rows.slice(0, 2),
+                    ...rows.slice(2).filter(row => isWithinLastXDays(row[2], thaiToday, Number(selectedDays)))
+                ];
+            }
 
             // เรียงเฉพาะแถวข้อมูลตาม clip_name (A-Z, ไม่สนตัวพิมพ์เล็กใหญ่)
             // คงหัวตาราง CSV สองแถวแรกไว้ และเรียงแบบตัวเลขตามธรรมชาติ เช่น clip2 ก่อน clip10
@@ -829,8 +966,8 @@ function getColumnWidth(column) {
             tableWrap.style.setProperty("--freeze-ab-width", (visibleWidth(0) + visibleWidth(1)) + "px");
             tableWrap.style.setProperty("--freeze-abc-width", (visibleWidth(0) + visibleWidth(1) + visibleWidth(2)) + "px");
             document.getElementById("summary").innerHTML =
-                `<a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=886166879#gid=886166879" target="_blank">จำนวนคลิป</a>: ${clipCount} |
-                 <a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=1397412964#gid=1397412964" target="_blank">จำนวนบัญชี</a>: ${totalUsers}`;
+                `<a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=886166879#gid=886166879" target="_blank">จำนวนคลิป</a>:${clipCount} |
+                 <a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=1397412964#gid=1397412964" target="_blank">จำนวนบัญชี</a>:${totalUsers}`;
         }
 
         function setCellWidth(cell, column) {
@@ -858,28 +995,14 @@ function getColumnWidth(column) {
                 }
 
                 const csvText = decodeCsv(await response.arrayBuffer());
-                drawTable(parseCsv(csvText));
+                allCsvRows = parseCsv(csvText);
+                drawTable(allCsvRows);
                 tableWrap.classList.remove("hidden");
 
              
-               // วันที่ปัจจุบันตามเวลาไทย + เวลาที่กำหนดเอง
-            const today = new Intl.DateTimeFormat("en-GB", {
-                timeZone: "Asia/Bangkok",
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric"
-            }).format(new Date());
+                // วันที่ไทย + เวลาสร้าง COMMENT_CHECK.csv
+                updatePageTitle();
 
-            const pageTitle = document.getElementById("pageTitle");
-            const createdTime = pageTitle.dataset.createdTime || "--:--";
-
-            pageTitle.textContent =
-            `ตรวจสอบคอมเมนต์ TikTok ${today} ${createdTime}`;
-
-
-
-
-                
               } catch (error) {
                    errorBox.textContent = String(error.message || error);
                   errorBox.classList.remove("hidden");
