@@ -262,18 +262,36 @@
         flex-shrink: 0;
         }
 
+        /* Dropdown แบบ Plain Text ไม่มีกรอบ */
         #daySelector {
             font: inherit;
-            font-size: 16px;
-            font-weight: 600;
-            padding: 2px 5px;
-            min-width: 65px;
-            border: 1px solid #94a3b8;
-            border-radius: 5px;
-            background: white;
-            color: #1e293b;
-            vertical-align: baseline;
+            font-size: 18px;
+            font-weight: 700;
+            color: inherit;
+
+            border: none;
+            outline: none;
+            background: transparent;
+            box-shadow: none;
+
+            padding: 0;
+            margin: 0;
             cursor: pointer;
+
+            width: auto;
+            appearance: none;         /* ซ่อนลูกศร Dropdown */
+            -webkit-appearance: none;
+        }
+
+        /* แสดงเส้นใต้เฉพาะเมื่อเอาเมาส์ชี้ */
+        #daySelector:hover {
+            text-decoration: underline;
+        }
+
+        /* แสดงเส้นขอบเมื่อใช้คีย์บอร์ด เพื่อให้รู้ว่ากำลังเลือก */
+        #daySelector:focus-visible {
+            outline: 2px solid #94a3b8;
+            outline-offset: 3px;
         }
 
  
@@ -307,7 +325,7 @@
 
 <body>
     <div class="header-row">
-        <h1 id="pageTitle">ตรวจสอบคอมเมนต์ TikTok
+        <h1 id="pageTitle">ตรวจสอบคอมเมนต์ TikTok |
             <select id="daySelector" aria-label="เลือกจำนวนวันย้อนหลัง">
                 <option value="All">All</option>
                 <option value="1">1</option>
@@ -341,7 +359,7 @@
                 <option value="29">29</option>
                 <option value="30">30</option>
             </select>
-            Days <span id="titleDate"></span>
+           Days | <span id="titleDate"></span>
         </h1>
         <span class="hint" id="summary">
             กำลังโหลด COMMENT_CHECK.csv...
