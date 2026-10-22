@@ -295,7 +295,7 @@
 
                 #daySelector:focus-visible {
                     outline: 1px solid #94a3b8;
-                    outline-offset: 2px;
+                    outline-offset: 1px;
         }
 
  
@@ -966,8 +966,8 @@ function getColumnWidth(column) {
             tableWrap.style.setProperty("--freeze-ab-width", (visibleWidth(0) + visibleWidth(1)) + "px");
             tableWrap.style.setProperty("--freeze-abc-width", (visibleWidth(0) + visibleWidth(1) + visibleWidth(2)) + "px");
             document.getElementById("summary").innerHTML =
-                `<a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=886166879#gid=886166879" target="_blank">จำนวนคลิป</a>: ${clipCount} |
-                 <a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=1397412964#gid=1397412964" target="_blank">จำนวนบัญชี</a>: ${totalUsers}`;
+                `<a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=886166879#gid=886166879" target="_blank">จำนวนคลิป</a>:${clipCount} |
+                 <a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=1397412964#gid=1397412964" target="_blank">จำนวนบัญชี</a>:${totalUsers}`;
         }
 
         function setCellWidth(cell, column) {
