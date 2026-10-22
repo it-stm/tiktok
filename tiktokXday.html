@@ -1,0 +1,932 @@
+        <!doctype html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TikTok Comment Check - X Days</title>
+
+ 
+
+    <style>
+        /* ==========================================================
+           1. รูปแบบหน้าเว็บ (ยึดตาม tiktok.php เดิม)
+           ========================================================== */
+        :root {
+            font-family: consolas, system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+            color: #1e293b;
+            background: #f1f5f9;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 10px 16px;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0 0 8px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .hint {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .btn {
+            background: #0f172a;
+            color: white;
+            border: 0;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .error {
+            background: #fff0f0;
+            color: #991b1b;
+            padding: 16px;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* ==========================================================
+           2. ตารางและ Freeze หัวตาราง 2 แถว
+           ========================================================== */
+        .table-wrap {
+            max-height: calc(100vh - 60px);
+            overflow: auto;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background: white;
+            position: relative;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            table-layout: fixed;
+            width: max-content;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            box-sizing: border-box;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 5px 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+            thead th {
+            background: #e2e8f0;
+            font-weight: 700;
+            text-align: center;
+            position: sticky;
+            z-index: 6;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            text-overflow: clip;
+            line-height: 1.35;
+            vertical-align: middle;
+        }
+
+        /* หัวตารางจริง 2 แถว: ยอดด้านบน / ชื่อด้านล่าง */
+        thead tr:first-child th {
+            top: 0;
+            height: 24px;
+            padding: 2px 2px;
+            white-space: nowrap;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        thead tr:nth-child(2) th {
+
+            /* font-family: "ThaiMono", Consolas, monospace; */
+            /* font-size: 16px;  แก้ขนาดตรงนี้ */
+            /* font-weight: 400; /* ตัวปกติ */
+                
+            top: 24px;
+            height: 48px;
+                
+            padding-top: 1px;     /* ระยะด้านบน */
+            padding-bottom: 2px;  /* ระยะด้านล่าง */
+            padding-left: 3px;    /* ระยะด้านซ้าย */
+            padding-right: 3px;   /* ระยะด้านขวา */
+                
+            border-bottom: 2px solid #475569;
+
+            /* รักษาช่องว่างในชื่อ User ตามข้อมูล CSV */
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+                
+        }
+        thead tr:first-child th[rowspan="2"] {
+            height: 72px;
+            top: 0;
+            border-bottom: 2px solid #475569;
+        }
+
+        /* ==========================================================
+           3. Freeze คอลัมน์ A (ชื่อคลิป) และ B (URL)
+           ========================================================== */
+        /* Freeze คอลัมน์ A=ชื่อคลิป B=ยอด C=URL D=date */
+        .freeze-0, .freeze-1, .freeze-2, .freeze-3 {
+            position: sticky;
+            box-shadow: 2px 0 3px #00000012;
+        }
+        .freeze-0 { left: 0; }
+        .freeze-1 { left: var(--freeze-a-width); }
+        .freeze-2 { left: var(--freeze-ab-width); }
+        .freeze-3 { left: var(--freeze-abc-width); }
+
+        tbody .freeze-0, tbody .freeze-1, tbody .freeze-2, tbody .freeze-3 {
+            z-index: 4;
+        }
+        thead .freeze-0, thead .freeze-1, thead .freeze-2, thead .freeze-3 {
+            z-index: 9;
+            background: #cbd5e1;
+        }
+
+        tbody td:first-child {
+            font-weight: 600;
+        }
+
+        tbody tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+
+        tbody tr:hover td {
+            background: #eaf2ff;
+        }
+
+        /* สีพาสเทลทั้งแถวตามชื่อคลิป รวมคอลัมน์ที่ Freeze และตอน Hover */
+        tbody tr.clip-colored td,
+        tbody tr.clip-colored:hover td {
+            background: var(--clip-row-color);
+        }
+
+        tbody td:nth-child(n+3) {
+            text-align: center;
+        }
+
+        /* เส้นแบ่งคอลัมน์เข้ม (ระบุตำแหน่งใน columnDividers ด้านล่าง) */
+        thead th.column-divider,
+        tbody td.column-divider {
+            border-right: 2px solid #475569;
+        }
+
+    a.url {
+        color: #2563eb;
+
+        display: block;
+        width: 100%;
+
+        direction: rtl;
+        text-align: left;
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+        td.yes {
+            color: #15803d;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+            
+
+         /* ตัวเลขยอดคอมเมนต์ ห้ามตัดบรรทัด */
+      /* ยอดคอมเมนต์อยู่บรรทัดบน */
+        .header-count {
+            display: block;
+            white-space: nowrap;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        /* ชื่อผู้ใช้อยู่บรรทัดล่าง */
+        .header-name {
+            display: block;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            font-weight: bold;
+        }
+
+
+
+            
+
+        /* เส้นเข้มก่อนคอลัมน์แรก */
+        thead th.column-divider-left,
+        tbody td.column-divider-left {
+            border-left: 2px solid #475569;
+        }
+
+        .header-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        margin-bottom: 10px;
+        }
+
+        .header-row h1 {
+        margin: 0;
+        flex-shrink: 0;
+        }
+
+        .header-row .hint {
+        flex-shrink: 0;
+        }
+
+ 
+        @font-face {
+            font-family: "Fira Code";
+            src: url("./fonts/FiraCode-Regular.woff2") format("woff2");
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+
+            /* ตัวเลขยอดคอมเมนต์ แถวบน  
+                thead tr:first-child th:not([rowspan]) {
+                    font-family: "Fira Code", Consolas, monospace;
+                    font-size: 12px;
+                    font-weight: 500;
+                } 
+            */
+
+            /* ตัวเลขยอดหลังชื่อคลิป 
+                tbody td:nth-child(2) {
+                    font-family: "Fira Code", Consolas, monospace;
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+            */    
+        
+    </style>
+</head>
+
+<body>
+    <div class="header-row">
+        <h1 id="pageTitle">ตรวจสอบคอมเมนต์ TikTok</h1>
+        <span class="hint" id="summary">
+            กำลังโหลด COMMENT_CHECK.csv...
+        </span>
+    </div>
+
+    <div class="error hidden" id="errorMessage" role="alert"></div>
+
+    <div class="table-wrap hidden" id="tableWrap">
+        <table id="commentsTable"></table>
+    </div>
+
+    <script>
+        "use strict";
+
+        // ==========================================================
+        // 4. ตั้งค่าความกว้างคอลัมน์ (px) แก้ตัวเลขตรงนี้ได้เลย
+        // ==========================================================
+       const columnWidths = {
+            0: 85,  // คอลัมน์ A: clip_name (Freeze)
+            1: 65,  // คอลัมน์ B: comment (Freeze)  
+            2: 100, // คอลัมน์ C: clip_url (Freeze)
+            3: 90,  // คอลัมน์ D: date (Freeze)
+            6: 70,  // อีซูซุ สงวนไทย
+            7: 70,  // สงวนไทย มือสอง
+            8: 65,  // แตงกวา ป้ายแดง
+            9: 65,  // แตงกวา รถมือสอง
+            29: 65, // เซลส์เอ๋ ป้ายแดง
+            30: 65, // เซลส์เอ๋ มือสอง
+            40: 65, // เซลส์นัท ป้ายแดง
+            41: 65, // เซลส์นัท มือสอง
+
+            // "17-26": 65 // ตัวอย่างช่วงคอลัมน์ 
+        };
+
+            
+
+        // เส้นแบ่งเข้ม "หลัง" คอลัมน์ตามหมายเลขที่แสดงบนตาราง (เริ่มนับจาก 1)
+        // เช่น 2 = ระหว่างคอลัมน์ 2-3, 7 = ระหว่าง 7-8
+        // แก้ตัวเลขในรายการนี้ได้เอง เพิ่ม/ลบได้ตามต้องการ
+        const columnDividers = [0, 3, 7, 18, 28, 39, 50];  
+
+        // สีพื้นหลังหัวตาราง ตามหมายเลขคอลัมน์ที่แสดงจริง (เริ่มจาก 1)
+        const headerColorGroups = [
+            {
+                columns: [8, 18],
+                // color: "#F0FDF4"  // tangkwa - เขียวอ่อน
+                color: "#FCE7F3"  // tangkwa - ชมพู    
+            },
+            {
+                columns: [19, 28],
+                color: "#F3E8FF"  // wine - ม่วง
+            },
+            {
+                columns: [29, 39],
+                color: "#FFEDD5"  // ae - ส้ม
+            },
+            {
+                columns: [40, 50],
+                color: "#E0F2FE"  // nut - ฟ้า
+            }
+        ];
+ 
+        const defaultUserWidth = 60;
+        const csvFileName = "COMMENT_CHECK.csv";
+
+        // จำนวนวันย้อนหลังที่ต้องการแสดง (0 = วันนี้เท่านั้น)
+        // ตัวอย่าง 3 = วันนี้และคลิปย้อนหลังไม่เกิน 3 วัน
+        const X = 3;
+
+        // คำนวณอายุคลิปจากวันที่ในประเทศไทย (Asia/Bangkok)
+        // เทียบเป็นวันปฏิทิน จึงไม่ขึ้นกับเวลาที่ผู้ใช้เปิดเว็บ
+        function getThaiTodayDayNumber() {
+            const parts = new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Bangkok",
+                year: "numeric", month: "2-digit", day: "2-digit"
+            }).formatToParts(new Date());
+            const get = type => Number(parts.find(part => part.type === type).value);
+            return Date.UTC(get("year"), get("month") - 1, get("day")) / 86400000;
+        }
+
+        function isWithinLastXDays(dateText, todayDayNumber) {
+            const match = String(dateText ?? "").trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+            if (!match) return false;
+            const year = Number(match[1]);
+            const month = Number(match[2]);
+            const day = Number(match[3]);
+            const utc = Date.UTC(year, month - 1, day);
+            const parsed = new Date(utc);
+            // ปฏิเสธวันที่ผิด เช่น 2026-02-31
+            if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() + 1 !== month || parsed.getUTCDate() !== day) {
+                return false;
+            }
+            const ageDays = todayDayNumber - utc / 86400000;
+            return ageDays >= 0 && ageDays <= X;
+        }
+
+        // สีแถวตามคำที่พบใน clip_name (ไม่สนใจตัวพิมพ์เล็ก-ใหญ่)
+        // หากชื่อคลิปมีหลายคำที่ตรงกัน จะใช้สีของคำที่อยู่ก่อนในรายการ
+        const clipRowColors = [
+            { keyword: "nut",     color: "#E0F2FE" }, // ฟ้าอ่อน
+            // { keyword: "tangkwa", color: "#F0FDF4" }, // เขียวอ่อน
+            { keyword: "tangkwa", color: "#FCE7F3" }, // ชมพูอ่อน
+            { keyword: "ae",      color: "#FFEDD5" }, // ส้มอ่อน
+            { keyword: "wine",    color: "#F3E8FF" }, // ม่วงอ่อน
+            { keyword: "phol",    color: "#F1F5F9" }  // เทาอ่อน
+        ];
+
+
+            // เรียงลำดับ clip_name
+            const clipSortOrder = [
+            "phol",
+            "tangkwa",
+            "wine",
+            "ae",
+            "nut"
+        ];
+
+
+        
+
+        // กฎการนับยอดในหัวตารางตามตำแหน่งคอลัมน์เดิมก่อนเพิ่มยอด
+        // User ที่ไม่ได้อยู่ในรายการนี้จะนับทุกคลิป
+       const commentCountGroups = [
+            {
+                columns: [8, 18],
+                prefixes: ["tangkwa", "phol"]
+            },
+            {
+                columns: [19, 28],
+                prefixes: ["wine"]
+            },
+            {
+                columns: [29, 39],
+                prefixes: ["ae"]
+            },
+            {
+                columns: [40, 50],
+                prefixes: ["nut"]
+            }
+        ];
+
+
+        
+        // ==========================================================
+        // กฎการนับยอดหลังชื่อคลิป (แยกจากหัวตาราง)
+        // คลิปที่ไม่ได้กำหนดกลุ่ม จะนับ User ทุกคน
+        // ==========================================================
+        const clipCountGroups = [
+    {
+        prefixes: ["tangkwa"],
+        columns: [8, 18]
+    },
+    {
+        prefixes: ["wine"],
+        columns: [19, 28]
+    },
+    {
+        prefixes: ["ae"],
+        columns: [29, 39]
+    },
+    {
+        prefixes: ["nut"],
+        columns: [40, 50]
+    }
+];
+
+
+
+
+
+
+
+
+        
+
+        function normalizedUsername(value) {
+            return String(value ?? "").trim().toLowerCase().replace(/^@+/, "");
+        }
+
+
+        
+
+          const countPrefixesByColumn = new Map();
+
+            for (const group of commentCountGroups) {
+                const [start, end] = group.columns;
+
+                    for (let column = start; column <= end; column++) {
+                        countPrefixesByColumn.set(column, group.prefixes);
+            }
+        }
+
+
+ 
+        
+
+        // ==========================================================
+        // 5. อ่าน CSV และรองรับ UTF-8 / UTF-16 / Windows-874
+        // ==========================================================
+        function decodeCsv(buffer) {
+            const bytes = new Uint8Array(buffer);
+
+            if (bytes[0] === 0xff && bytes[1] === 0xfe) {
+                return new TextDecoder("utf-16le").decode(bytes);
+            }
+
+            if (bytes[0] === 0xfe && bytes[1] === 0xff) {
+                return new TextDecoder("utf-16be").decode(bytes);
+            }
+
+            try {
+                return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+            } catch (_) {
+                return new TextDecoder("windows-874").decode(bytes);
+            }
+        }
+
+        // รองรับเครื่องหมายคำพูด, comma และบรรทัดใหม่ภายในค่า CSV
+        function parseCsv(text) {
+            const rows = [];
+            let row = [];
+            let field = "";
+            let inQuotes = false;
+
+            text = text.replace(/^\uFEFF/, "");
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+
+                if (char === '"') {
+                    if (inQuotes && text[i + 1] === '"') {
+                        field += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === "," && !inQuotes) {
+                    row.push(field);
+                    field = "";
+                } else if ((char === "\n" || char === "\r") && !inQuotes) {
+                    if (char === "\r" && text[i + 1] === "\n") {
+                        i++;
+                    }
+
+                    row.push(field);
+                    if (row.some(cell => cell.trim() !== "")) {
+                        rows.push(row);
+                    }
+                    row = [];
+                    field = "";
+                } else {
+                    field += char;
+                }
+            }
+
+            row.push(field);
+            if (row.some(cell => cell.trim() !== "")) {
+                rows.push(row);
+            }
+
+            return rows;
+        }
+
+        function isCommented(value) {
+            return ["✓", "✔", "yes", "true", "1"].includes(value.trim().toLowerCase());
+        }
+
+function getColumnWidth(column) {
+    // ค่ารายคอลัมน์มีความสำคัญก่อนค่าช่วง
+    if (columnWidths[column] !== undefined) {
+        return Math.max(30, Number(columnWidths[column]));
+    }
+
+    // ตรวจสอบการกำหนดเป็นช่วง
+    for (const [range, width] of Object.entries(columnWidths)) {
+        const match = range.match(/^(\d+)-(\d+)$/);
+
+        if (match) {
+            const start = Number(match[1]);
+            const end = Number(match[2]);
+
+            if (column >= start && column <= end) {
+                return Math.max(30, Number(width));
+            }
+        }
+    }
+
+    return Math.max(30, defaultUserWidth);
+}
+
+        // ==========================================================
+        // 6. แสดงหัวตารางเฉพาะแถวแรกและข้อมูล พร้อมยอด (commented/all)
+        // ==========================================================
+        // ความกว้างของคอลัมน์ที่แสดง: 0=clip_name, 1=URL, 2=date,
+        // columnWidths ใช้ index คอลัมน์เดิม (0-based) ก่อนเพิ่มคอลัมน์ยอด
+    function displayColumnWidth(column) {
+        return getColumnWidth(column);
+    }
+
+        function drawTable(rows) {
+            if (rows.length < 2) {
+                throw new Error("CSV ต้องมีหัวตาราง 2 แถว (display_name และ @username)");
+            }
+
+            // ย้าย date จากคอลัมน์ท้าย CSV มาแสดงที่คอลัมน์วันที่
+            // และคัดเฉพาะคลิปย้อนหลังไม่เกิน X วัน (เวลาไทย)
+            const dateColumn = rows[0].findIndex(cell => String(cell).trim().toLowerCase() === "date");
+
+        // อ่านเวลาสร้างไฟล์จากหัวตาราง CSV แถวที่สอง
+        const createdTime = dateColumn !== -1
+            ? String(rows[1][dateColumn] ?? "").trim()
+            : "";
+
+        // เก็บเวลาไว้ใช้แสดงที่หัวข้อเว็บ
+        document.getElementById("pageTitle").dataset.createdTime = createdTime;
+
+
+
+            
+            if (dateColumn === -1) {
+                throw new Error("COMMENT_CHECK.csv ต้องมีคอลัมน์ date");
+            }
+            rows = rows.map(row => {
+                const result = [...row];
+                const [dateValue] = result.splice(dateColumn, 1);
+                result.splice(2, 0, dateValue ?? "");
+                return result;
+            });
+
+            const columns = Math.max(...rows.map(row => row.length));
+            rows = rows.map(row => Array.from({ length: columns }, (_, i) => row[i] ?? ""));
+
+            // หัว CSV 2 แถวแรกเก็บไว้เสมอ; กรองเฉพาะแถวคลิปจาก date ที่ย้ายมา index 2
+            // กรองก่อนนับยอดทุกชนิด เพื่อให้เศษ/ส่วนตรงกับคลิปที่แสดงจริง
+            const thaiToday = getThaiTodayDayNumber();
+            rows = [
+                ...rows.slice(0, 2),
+                ...rows.slice(2).filter(row => isWithinLastXDays(row[2], thaiToday))
+            ];
+
+            // เรียงเฉพาะแถวข้อมูลตาม clip_name (A-Z, ไม่สนตัวพิมพ์เล็กใหญ่)
+            // คงหัวตาราง CSV สองแถวแรกไว้ และเรียงแบบตัวเลขตามธรรมชาติ เช่น clip2 ก่อน clip10
+ 
+            const getClipSortRank = (name) => {
+            const clipName = String(name).trim().toLowerCase();
+
+            const index = clipSortOrder.findIndex(prefix =>
+                clipName.startsWith(prefix.toLowerCase())
+            );
+
+            return index === -1 ? clipSortOrder.length : index;
+        };
+
+        const sortedClips = rows.slice(2).sort((a, b) => {
+            const rankA = getClipSortRank(a[0]);
+            const rankB = getClipSortRank(b[0]);
+
+            if (rankA !== rankB) {
+                return rankA - rankB;
+            }
+
+            return String(a[0]).localeCompare(String(b[0]), undefined, {
+                sensitivity: "base",
+                numeric: true
+            });
+        });
+
+
+
+
+            
+            rows = [...rows.slice(0, 2), ...sortedClips];
+
+            const clipCount = Math.max(0, rows.length - 2);
+            const totalUsers = Math.max(0, columns - 3);
+            const commentedCounts = Array(columns).fill(0);
+            const eligibleClipCounts = Array(columns).fill(clipCount);
+            const commentedPerClip = Array(rows.length).fill(0);
+
+            // กำหนดขอบเขตคลิปของแต่ละคนจากคอลัมน์เดิมก่อนเพิ่มคอลัมน์ยอด
+
+
+
+            
+         const userPrefixes = Array.from({ length: columns }, (_, c) =>
+            c >= 3
+                ? countPrefixesByColumn.get(c + 1)
+                : undefined
+        );
+
+ 
+            
+            for (let c = 3; c < columns; c++) {
+                if (userPrefixes[c]) eligibleClipCounts[c] = 0;
+            }
+
+            for (let r = 2; r < rows.length; r++) {
+                const clipNameForCount = String(rows[r][0]).trim().toLowerCase();
+                for (let c = 3; c < columns; c++) {
+                    const commented = isCommented(rows[r][c]);
+                    // จำนวนคอมเมนต์ต่อคลิปยังคงนับทุก User ที่มีเครื่องหมาย ✓
+                    if (commented) commentedPerClip[r]++;
+                    const prefixes = userPrefixes[c];
+                    const eligible = !prefixes || prefixes.some(prefix => clipNameForCount.startsWith(prefix));
+                    if (eligible) {
+                        if (prefixes) eligibleClipCounts[c]++;
+                        if (commented) commentedCounts[c]++;
+                    }
+                }
+            }
+
+
+
+ 
+        // ==========================================================
+        // คำนวณยอดหลังชื่อคลิป ตามช่วงหมายเลขคอลัมน์
+        // คลิปอื่นที่ไม่กำหนดกลุ่ม จะนับทุก User
+        // จุดที่ 2 — แก้ส่วนคำนวณยอดหลังชื่อคลิป
+        // ==========================================================
+        const clipUserTotals = Array(rows.length).fill(totalUsers);
+
+        for (let r = 2; r < rows.length; r++) {
+            const clipName = String(rows[r][0]).trim().toLowerCase();
+
+            const group = clipCountGroups.find(g =>
+                g.prefixes.some(prefix =>
+                    clipName.startsWith(prefix.toLowerCase())
+                )
+            );
+
+            // ไม่อยู่ในกลุ่มที่กำหนด -> ใช้ยอดทุก User ตามเดิม
+            if (!group) continue;
+
+            const [start, end] = group.columns;
+            let found = 0;
+            let total = 0;
+
+            // c เป็น index เริ่มจาก 0; คอลัมน์หน้าเว็บ = c + 1
+            for (let c = 3; c < columns; c++) {
+                const columnNumber = c + 1;
+
+                if (columnNumber >= start && columnNumber <= end) {
+                    total++;
+
+                    if (isCommented(rows[r][c])) {
+                        found++;
+                    }
+                }
+            }
+
+            commentedPerClip[r] = found;
+            clipUserTotals[r] = total;
+        }
+
+
+        // end   จุดที่ 2 — แก้ส่วนคำนวณยอดหลังชื่อคลิป
+
+            
+            const table = document.getElementById("commentsTable");
+            table.replaceChildren();
+
+            // แสดงคอลัมน์พิเศษ "ยอด" ต่อจากชื่อคลิป (ไม่ต้องแก้ CSV)
+            // กฎ commentCountGroups, clipCountGroups, headerColorGroups
+            // ยังใช้เลขคอลัมน์เดิมก่อนเพิ่มคอลัมน์ยอด เพื่อไม่ให้กลุ่มคลาดเคลื่อน
+            const displayColumns = columns + 1;
+            const visibleWidth = p => displayColumnWidth(p);
+            const originalColumn = p => p === 0 ? 0 : p - 1;
+            const visibleDividers = new Set(columnDividers.map(n => n === 0 ? 0 : n + 1));
+
+            function decorateCell(cell, p) {
+                const width = visibleWidth(p) + "px";
+                cell.style.width = width;
+                cell.style.minWidth = width;
+                cell.style.maxWidth = width;
+                if (p < 4) cell.classList.add(`freeze-${p}`);
+                if (visibleDividers.has(p + 1)) cell.classList.add("column-divider");
+                if (p === 0 && visibleDividers.has(0)) cell.classList.add("column-divider-left");
+            }
+
+            const colgroup = document.createElement("colgroup");
+            for (let p = 0; p < displayColumns; p++) {
+                const col = document.createElement("col");
+                col.style.width = visibleWidth(p) + "px";
+                colgroup.appendChild(col);
+            }
+            table.appendChild(colgroup);
+
+            const thead = document.createElement("thead");
+            const countRow = document.createElement("tr");
+            const nameRow = document.createElement("tr");
+
+            for (let p = 0; p < displayColumns; p++) {
+                const c = originalColumn(p);
+                // A-D ครอบทั้ง 2 แถว: ชื่อคลิป / ยอด / URL / date
+                if (p < 4) {
+                    const th = document.createElement("th");
+                    const title = p === 1 ? "comment" : String(rows[0][c]);
+                    th.textContent = title;
+                    th.title = title;
+                    th.rowSpan = 2;
+                    decorateCell(th, p);
+                    countRow.appendChild(th);
+                    continue;
+                }
+
+                const group = headerColorGroups.find(g => {
+                    const [from, to] = g.columns;
+                    // ตำแหน่งเดิมจาก CSV (ก่อนเพิ่มยอด)
+                    return c + 1 >= from && c + 1 <= to;
+                });
+                const countTh = document.createElement("th");
+                countTh.textContent = `(${commentedCounts[c]}/${eligibleClipCounts[c]})`;
+                countTh.title = countTh.textContent;
+                const nameTh = document.createElement("th");
+                nameTh.textContent = String(rows[0][c]);
+                nameTh.title = nameTh.textContent;
+                decorateCell(countTh, p);
+                decorateCell(nameTh, p);
+                if (group) {
+                    countTh.style.backgroundColor = group.color;
+                    nameTh.style.backgroundColor = group.color;
+                }
+                countRow.appendChild(countTh);
+                nameRow.appendChild(nameTh);
+            }
+            thead.append(countRow, nameRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement("tbody");
+            for (let r = 2; r < rows.length; r++) {
+                const tr = document.createElement("tr");
+                const clipName = String(rows[r][0]).toLowerCase();
+                const matchedColor = clipRowColors.find(item => clipName.includes(item.keyword));
+                if (matchedColor) {
+                    tr.classList.add("clip-colored");
+                    tr.style.setProperty("--clip-row-color", matchedColor.color);
+                }
+
+                for (let p = 0; p < displayColumns; p++) {
+                    const td = document.createElement("td");
+                    decorateCell(td, p);
+                    if (p === 1) {
+                        td.style.textAlign = "center";
+                        td.textContent = `(${commentedPerClip[r]}/${clipUserTotals[r]})`;
+                        td.title = td.textContent;
+                    } else {
+                        const c = originalColumn(p);
+                        const value = String(rows[r][c]).trim();
+                        if (c >= 3 && isCommented(value)) td.classList.add("yes");
+                        if (c === 1 && /^https?:\/\//i.test(value)) {
+                            const link = document.createElement("a");
+                            link.className = "url";
+                            link.href = value;
+                            link.target = "_blank";
+                            link.rel = "noopener noreferrer";
+                            link.title = value;
+                            link.textContent = value;
+                            td.appendChild(link);
+                        } else {
+                            td.textContent = value;
+                            td.title = value;
+                        }
+                    }
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+            table.appendChild(tbody);
+
+            const tableWrap = document.getElementById("tableWrap");
+            tableWrap.style.setProperty("--freeze-a-width", visibleWidth(0) + "px");
+            tableWrap.style.setProperty("--freeze-ab-width", (visibleWidth(0) + visibleWidth(1)) + "px");
+            tableWrap.style.setProperty("--freeze-abc-width", (visibleWidth(0) + visibleWidth(1) + visibleWidth(2)) + "px");
+            document.getElementById("summary").innerHTML =
+                `<a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=886166879#gid=886166879" target="_blank">จำนวนคลิป</a>: ${clipCount} |
+                 <a href="https://docs.google.com/spreadsheets/d/1CTi0ZpyTyESYyiiYXDZdk5m1mq5X81VOW-ObHezuJ5o/edit?gid=1397412964#gid=1397412964" target="_blank">จำนวนบัญชี</a>: ${totalUsers}`;
+        }
+
+        function setCellWidth(cell, column) {
+            const width = displayColumnWidth(column) + "px";
+            cell.style.width = width;
+            cell.style.minWidth = width;
+            cell.style.maxWidth = width;
+        }
+
+        // ==========================================================
+        // 7. โหลดข้อมูลบน GitHub Pages (ไม่ใช้ PHP หรือฐานข้อมูล)
+        // ==========================================================
+        async function loadData() {
+            const errorBox = document.getElementById("errorMessage");
+            const tableWrap = document.getElementById("tableWrap");
+
+            errorBox.classList.add("hidden");
+            tableWrap.classList.add("hidden");
+            document.getElementById("summary").textContent = "กำลังโหลด COMMENT_CHECK.csv...";
+
+            try {
+                const response = await fetch(csvFileName, { cache: "no-store" });
+                if (!response.ok) {
+                    throw new Error(`โหลด ${csvFileName} ไม่สำเร็จ (HTTP ${response.status})`);
+                }
+
+                const csvText = decodeCsv(await response.arrayBuffer());
+                drawTable(parseCsv(csvText));
+                tableWrap.classList.remove("hidden");
+
+             
+               // วันที่ปัจจุบันตามเวลาไทย + เวลาที่กำหนดเอง
+            const today = new Intl.DateTimeFormat("en-GB", {
+                timeZone: "Asia/Bangkok",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }).format(new Date());
+
+            const pageTitle = document.getElementById("pageTitle");
+            const createdTime = pageTitle.dataset.createdTime || "--:--";
+
+            pageTitle.textContent =
+            `ตรวจสอบคอมเมนต์ TikTok ${X} วันย้อนหลัง ${today} ${createdTime}`;
+
+
+
+
+                
+              } catch (error) {
+                   errorBox.textContent = String(error.message || error);
+                  errorBox.classList.remove("hidden");
+                 document.getElementById("summary").textContent = "ไม่สามารถแสดงข้อมูลได้";
+             }
+         }
+
+        loadData();
+    </script>
+</body>
+</html>
