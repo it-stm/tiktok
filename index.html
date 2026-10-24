@@ -19,6 +19,10 @@
             background: #f1f5f9;
         }
 
+            :root.use-webmono {
+            font-size: 12px;
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -1014,6 +1018,17 @@ function getColumnWidth(column) {
          }
 
         loadData();
+
+
+                document.fonts.ready.then(() => {
+                    const hasConsolas = document.fonts.check('14px Consolas');
+
+                    if (!hasConsolas) {
+                document.documentElement.classList.add('use-webmono');
+            }
+        });
+
+            
     </script>
 </body>
 </html>
