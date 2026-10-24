@@ -18,8 +18,8 @@
             background: #f1f5f9;
         }
 
-            :root.use-webmono {
-            font-size: 12px;
+            :root.is-mobile {
+            font-size: 13px;
         }
 
         * {
@@ -1019,14 +1019,13 @@ function getColumnWidth(column) {
         loadData();
 
 
-                document.fonts.ready.then(() => {
-                    const hasConsolas = document.fonts.check('14px Consolas');
+             const isAndroid = /Android/i.test(navigator.userAgent);
+             const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+                    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-                    if (!hasConsolas) {
-                document.documentElement.classList.add('use-webmono');
-            }
-        });
-
+                if (isAndroid || isIOS) {
+                    document.documentElement.classList.add('is-mobile');
+                }
             
     </script>
 </body>
