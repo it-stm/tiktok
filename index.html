@@ -388,14 +388,14 @@ Days | <span id="titleDate"></span>
             1: 65,  // คอลัมน์ B: comment (Freeze)  
             2: 100, // คอลัมน์ C: clip_url (Freeze)
             3: 90,  // คอลัมน์ D: date (Freeze)
-            6: 70,  // อีซูซุ สงวนไทย
-            7: 70,  // สงวนไทย มือสอง
-            8: 65,  // แตงกวา ป้ายแดง
-            9: 65,  // แตงกวา รถมือสอง
-            29: 65, // เซลส์เอ๋ ป้ายแดง
-            30: 65, // เซลส์เอ๋ มือสอง
-            40: 65, // เซลส์นัท ป้ายแดง
-            41: 65, // เซลส์นัท มือสอง
+           // 6: 70,  // อีซูซุ สงวนไทย
+           // 7: 70,  // สงวนไทย มือสอง
+            6: 65,  // แตงกวา ป้ายแดง
+            7: 65,  // แตงกวา รถมือสอง
+            27: 65, // เซลส์เอ๋ ป้ายแดง
+            28: 65, // เซลส์เอ๋ มือสอง
+            38: 65, // เซลส์นัท ป้ายแดง
+            39: 65, // เซลส์นัท มือสอง
 
             // "17-26": 65 // ตัวอย่างช่วงคอลัมน์ 
         };
@@ -405,25 +405,25 @@ Days | <span id="titleDate"></span>
         // เส้นแบ่งเข้ม "หลัง" คอลัมน์ตามหมายเลขที่แสดงบนตาราง (เริ่มนับจาก 1)
         // เช่น 2 = ระหว่างคอลัมน์ 2-3, 7 = ระหว่าง 7-8
         // แก้ตัวเลขในรายการนี้ได้เอง เพิ่ม/ลบได้ตามต้องการ
-        const columnDividers = [0, 3, 7, 18, 28, 39, 50];  
+        const columnDividers = [0, 3, 5, 16, 26, 37, 48];  
 
         // สีพื้นหลังหัวตาราง ตามหมายเลขคอลัมน์ที่แสดงจริง (เริ่มจาก 1)
         const headerColorGroups = [
             {
-                columns: [8, 18],
+                columns: [6, 16],
                 // color: "#F0FDF4"  // tangkwa - เขียวอ่อน
                 color: "#FCE7F3"  // tangkwa - ชมพู    
             },
             {
-                columns: [19, 28],
+                columns: [17, 26],
                 color: "#F3E8FF"  // wine - ม่วง
             },
             {
-                columns: [29, 39],
+                columns: [27, 37],
                 color: "#FFEDD5"  // ae - ส้ม
             },
             {
-                columns: [40, 50],
+                columns: [38, 48],
                 color: "#E0F2FE"  // nut - ฟ้า
             }
         ];
@@ -514,19 +514,19 @@ Days | <span id="titleDate"></span>
         // User ที่ไม่ได้อยู่ในรายการนี้จะนับทุกคลิป
        const commentCountGroups = [
             {
-                columns: [4, 18],
+                columns: [4, 16],
                 prefixes: ["tangkwa", "phol"]
             },
             {
-                columns: [19, 28],
+                columns: [17, 26],
                 prefixes: ["wine"]
             },
             {
-                columns: [29, 39],
+                columns: [27, 37],
                 prefixes: ["ae"]
             },
             {
-                columns: [40, 50],
+                columns: [38, 48],
                 prefixes: ["nut"]
             }
         ];
@@ -540,23 +540,23 @@ Days | <span id="titleDate"></span>
         const clipCountGroups = [
     {
         prefixes: ["tangkwa"],
-        columns: [8, 18]
+        columns: [6, 16]
     },
     {
         prefixes: ["phol"],
-        columns: [8, 18]
+        columns: [6, 16]
     },            
     {
         prefixes: ["wine"],
-        columns: [19, 28]
+        columns: [17, 26]
     },
     {
         prefixes: ["ae"],
-        columns: [29, 39]
+        columns: [27, 37]
     },
     {
         prefixes: ["nut"],
-        columns: [40, 50]
+        columns: [38, 48]
     }
 ];
 
